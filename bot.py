@@ -708,12 +708,12 @@ def _ref_link(user_id: int) -> str:
 
 def _home_caption(*, uid: int, credits: int, stock: int) -> str:
     return (
-        "◤ ID STORE BOT ◢\n"
+        "💎 ◤ ID STORE BOT ◢\n"
         "━━━━━━━━━━━━━━━\n"
         f"▸ User ID  : {uid}\n"
-        f"▸ Credits  : {credits}\n"
-        "▸ Price    : Set per account\n"
-        f"▸ Stock    : {stock}\n"
+        f"▸ 💰 Credits  : {credits}\n"
+        "▸ 💲 Price    : Set per account\n"
+        f"▸ 📊 Stock    : {stock}\n"
         "━━━━━━━━━━━━━━━"
     )
 
@@ -773,7 +773,7 @@ async def start_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     joined, join_err, missing = await _is_joined(update, context)
     if not joined:
         join_text = (
-            "◤ ID STORE BOT ◢\n"
+            "💎 ◤ ID STORE BOT ◢\n"
             "━━━━━━━━━━━━━━━\n"
             "🔒 Channel Verification Required\n\n"
             f"📢 Join: @{CHANNEL_USERNAME}\n"
