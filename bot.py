@@ -1448,7 +1448,11 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
             emoji = c.get("country_emoji") or ""
             count = c.get("count", 0)
             price = int(prices.get(code, 0))
-            current.append(InlineKeyboardButton(f"{emoji} {code} ₹{price} ({count})", callback_data=f"session:country:{code}"))
+            flag_id = PREMIUM_EMOJI_MAP.get(emoji)
+            if flag_id:
+                current.append(InlineKeyboardButton(f"{code} ₹{price} ({count})", style="primary", icon_custom_emoji_id=flag_id, callback_data=f"session:country:{code}"))
+            else:
+                current.append(InlineKeyboardButton(f"{emoji} {code} ₹{price} ({count})", callback_data=f"session:country:{code}"))
             if len(current) == 2:
                 rows.append(current)
                 current = []
