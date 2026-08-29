@@ -231,7 +231,7 @@ def main_menu(is_admin: bool) -> InlineKeyboardMarkup:
 def back_to_menu() -> InlineKeyboardMarkup:
     return kb([[InlineKeyboardButton("⬅️ Back", style="primary", callback_data="menu:home")]])
 
-async def build_country_price_text(countries: list[dict]) -> str:
+async def build_country_price_text(repo: "Repo", countries: list[dict]) -> str:
     lines = ["🛒 Buy Account — Prices:\n"]
     for c in countries:
         code = c.get("country") or "?"
@@ -1149,7 +1149,7 @@ async def on_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         if not countries:
             await safe_reply_text(update.message, "No stock available.")
             return
-        price_text = await build_country_price_text(countries)
+        price_text = await build_country_price_text(repo, countries)
         await safe_reply_text(update.message, price_text, reply_markup=countries_keyboard(countries))
         return
 
@@ -1487,7 +1487,7 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
         if not countries:
             await safe_query_answer(query, "❌ No stock available right now.", show_alert=True)
             return
-        price_text = await build_country_price_text(countries)
+        price_text = await build_country_price_text(repo, countries)
         await safe_edit(query.message, price_text, reply_markup=countries_keyboard(countries), parse_mode=None)
         return
 
