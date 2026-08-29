@@ -231,6 +231,25 @@ def main_menu(is_admin: bool) -> InlineKeyboardMarkup:
 def back_to_menu() -> InlineKeyboardMarkup:
     return kb([[InlineKeyboardButton("⬅️ Back", style="primary", callback_data="menu:home")]])
 
+async def build_country_price_text(countries: list[dict]) -> str:
+    lines = ["🛒 Buy Account — Prices:\n"]
+    for c in countries:
+        code = c.get("country") or "?"
+        emoji = c.get("country_emoji") or ""
+        count = c.get("count", 0)
+        pr = await repo.available_price_range(country=code, year=None)
+        min_p = pr.get("min_price")
+        max_p = pr.get("max_price")
+        if min_p is None:
+            price_str = "N/A"
+        elif min_p == max_p:
+            price_str = f"₹{min_p}"
+        else:
+            price_str = f"₹{min_p}–₹{max_p}"
+        lines.append(f"{emoji} {code}: {price_str} ({count} in stock)")
+    lines.append("\n⬇️ Neeche se country chunein:")
+    return "\n".join(lines)
+
 def countries_keyboard(countries: list[dict]) -> InlineKeyboardMarkup:
     rows: list[list[InlineKeyboardButton]] = []
     current: list[InlineKeyboardButton] = []
@@ -1130,7 +1149,8 @@ async def on_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         if not countries:
             await safe_reply_text(update.message, "No stock available.")
             return
-        await safe_reply_text(update.message, "Select country:", reply_markup=countries_keyboard(countries))
+        price_text = await build_country_price_text(countries)
+        await safe_reply_text(update.message, price_text, reply_markup=countries_keyboard(countries))
         return
 
     if text_in == "💳 Deposit":
@@ -1467,7 +1487,8 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
         if not countries:
             await safe_query_answer(query, "❌ No stock available right now.", show_alert=True)
             return
-        await safe_edit(query.message, "Select country:", reply_markup=countries_keyboard(countries), parse_mode=None)
+        price_text = await build_country_price_text(countries)
+        await safe_edit(query.message, price_text, reply_markup=countries_keyboard(countries), parse_mode=None)
         return
 
     if data.startswith("shop:country:"):
