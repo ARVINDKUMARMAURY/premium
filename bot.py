@@ -210,22 +210,22 @@ def reply_menu(is_admin_user: bool):
 def main_menu(is_admin: bool) -> InlineKeyboardMarkup:
     rows = [
         [
-            InlineKeyboardButton("Buy Account", icon_custom_emoji_id="5424972470023104089", callback_data="shop:countries"),
-            InlineKeyboardButton("History", icon_custom_emoji_id="5323442290708985472", callback_data="me:history:0"),
+            InlineKeyboardButton("Buy Account", style="primary", icon_custom_emoji_id="5424972470023104089", callback_data="shop:countries"),
+            InlineKeyboardButton("History", style="primary", icon_custom_emoji_id="5323442290708985472", callback_data="me:history:0"),
         ],
         [
-            InlineKeyboardButton("Buy Session", icon_custom_emoji_id="5424972470023104089", callback_data="session:start"),
-            InlineKeyboardButton("Balance", icon_custom_emoji_id="5409048419211682843", callback_data="me:balance"),
+            InlineKeyboardButton("Buy Session", style="primary", icon_custom_emoji_id="5424972470023104089", callback_data="session:start"),
+            InlineKeyboardButton("Balance", style="primary", icon_custom_emoji_id="5409048419211682843", callback_data="me:balance"),
         ],
         [
-            InlineKeyboardButton("Deposit", icon_custom_emoji_id="5409048419211682843", callback_data="dep:start"),
+            InlineKeyboardButton("Deposit", style="primary", icon_custom_emoji_id="5409048419211682843", callback_data="dep:start"),
             InlineKeyboardButton("🆘 Support", url=f"https://t.me/{SUPPORT_USERNAME}"),
         ],
-        [InlineKeyboardButton("Find by Credits", icon_custom_emoji_id="5323442290708985472", callback_data="find:credits")],
-        [InlineKeyboardButton("Refer & Earn", icon_custom_emoji_id="5337080053119336309", callback_data="ref:menu")],
+        [InlineKeyboardButton("Find by Credits", style="primary", icon_custom_emoji_id="5323442290708985472", callback_data="find:credits")],
+        [InlineKeyboardButton("Refer & Earn", style="primary", icon_custom_emoji_id="5337080053119336309", callback_data="ref:menu")],
     ]
     if is_admin:
-        rows.append([InlineKeyboardButton("Admin Panel", icon_custom_emoji_id="4963511421280192936", callback_data="admin:menu")])
+        rows.append([InlineKeyboardButton("Admin Panel", style="primary", icon_custom_emoji_id="4963511421280192936", callback_data="admin:menu")])
     return kb(rows)
 
 def back_to_menu() -> InlineKeyboardMarkup:
@@ -316,7 +316,7 @@ def years_keyboard(country: str, years: list[dict]) -> InlineKeyboardMarkup:
 def buy_confirm_keyboard(country: str, year_token: str) -> InlineKeyboardMarkup:
     return kb(
         [
-            [InlineKeyboardButton("Confirm Buy", icon_custom_emoji_id="5206607081334906820", callback_data=f"shop:buy:{country}:{year_token}")],
+            [InlineKeyboardButton("Confirm Buy", style="success", icon_custom_emoji_id="5206607081334906820", callback_data=f"shop:buy:{country}:{year_token}")],
             [
                 InlineKeyboardButton("⬅️ Back", callback_data=f"shop:country:{country}"),
                 InlineKeyboardButton("🏠 Menu", callback_data="menu:home"),
@@ -701,9 +701,9 @@ def _home_caption(*, uid: int, credits: int, stock: int) -> str:
 def join_keyboard() -> InlineKeyboardMarkup:
     return kb(
         [
-            [InlineKeyboardButton("Join Main Channel", icon_custom_emoji_id="5456140674028019486", url=f"https://t.me/{CHANNEL_USERNAME}")],
-            [InlineKeyboardButton("Join Report Channel", icon_custom_emoji_id="5456140674028019486", url=f"https://t.me/{REPORT_CHANNEL_USERNAME}")],
-            [InlineKeyboardButton("Verify", icon_custom_emoji_id="5206607081334906820", callback_data="join:verify")],
+            [InlineKeyboardButton("Join Main Channel", style="primary", icon_custom_emoji_id="5456140674028019486", url=f"https://t.me/{CHANNEL_USERNAME}")],
+            [InlineKeyboardButton("Join Report Channel", style="primary", icon_custom_emoji_id="5456140674028019486", url=f"https://t.me/{REPORT_CHANNEL_USERNAME}")],
+            [InlineKeyboardButton("Verify", style="success", icon_custom_emoji_id="5206607081334906820", callback_data="join:verify")],
         ]
     )
 
@@ -1067,7 +1067,7 @@ async def on_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             "After paying, send the *UTR / Transaction Reference Number* here as a message "
             "(you'll find it in your payment app's transaction history)."
         )
-        markup = kb([[InlineKeyboardButton("Cancel", icon_custom_emoji_id="5440660757194744323", callback_data="dep:cancel")]])
+        markup = kb([[InlineKeyboardButton("Cancel", style="danger", icon_custom_emoji_id="5440660757194744323", callback_data="dep:cancel")]])
         try:
             await update.message.reply_photo(photo=qr_img_url, caption=caption, parse_mode=ParseMode.MARKDOWN, reply_markup=markup)
         except Exception:
@@ -1096,7 +1096,7 @@ async def on_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         else:
             retry_kb = kb([
                 [InlineKeyboardButton("🔄 Check Again", callback_data=f"bpcheck:{utr}")],
-                [InlineKeyboardButton("Cancel", icon_custom_emoji_id="5440660757194744323", callback_data="dep:cancel")],
+                [InlineKeyboardButton("Cancel", style="danger", icon_custom_emoji_id="5440660757194744323", callback_data="dep:cancel")],
             ])
             await update.message.reply_text(msg, reply_markup=retry_kb)
         return
@@ -1140,7 +1140,7 @@ async def on_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             parse_mode=ParseMode.MARKDOWN,
             reply_markup=kb(
                 [
-                    [InlineKeyboardButton("BharatPe (UPI)", icon_custom_emoji_id="5409048419211682843", callback_data="dep:upi")],
+                    [InlineKeyboardButton("BharatPe (UPI)", style="primary", icon_custom_emoji_id="5409048419211682843", callback_data="dep:upi")],
                     [InlineKeyboardButton("🏠 Menu", callback_data="menu:home")],
                 ]
             ),
@@ -1232,7 +1232,7 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
         await safe_edit(
             query.message,
             "This payment method has been replaced. Please start a new deposit.",
-            reply_markup=kb([[InlineKeyboardButton("New Deposit", icon_custom_emoji_id="5409048419211682843", callback_data="dep:start")]]),
+            reply_markup=kb([[InlineKeyboardButton("New Deposit", style="primary", icon_custom_emoji_id="5409048419211682843", callback_data="dep:start")]]),
             parse_mode=None,
         )
         return
@@ -1248,7 +1248,7 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
         else:
             retry_kb = kb([
                 [InlineKeyboardButton("🔄 Check Again", callback_data=f"bpcheck:{utr}")],
-                [InlineKeyboardButton("Cancel", icon_custom_emoji_id="5440660757194744323", callback_data="dep:cancel")],
+                [InlineKeyboardButton("Cancel", style="danger", icon_custom_emoji_id="5440660757194744323", callback_data="dep:cancel")],
             ])
             await safe_edit(query.message, msg, reply_markup=retry_kb, parse_mode=None)
         return
@@ -1353,7 +1353,7 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
             "💳 *Deposit*\n\nChoose deposit method:",
             reply_markup=kb(
                 [
-                    [InlineKeyboardButton("BharatPe (UPI)", icon_custom_emoji_id="5409048419211682843", callback_data="dep:upi")],
+                    [InlineKeyboardButton("BharatPe (UPI)", style="primary", icon_custom_emoji_id="5409048419211682843", callback_data="dep:upi")],
                     [InlineKeyboardButton("🏠 Menu", callback_data="menu:home")],
                 ]
             ),
@@ -1396,7 +1396,7 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
         await safe_edit(
             query.message,
             "💳 BharatPe UPI Deposit\n\nType the amount (₹) you want to deposit and send it as a message.\n\nExample: 100",
-            reply_markup=kb([[InlineKeyboardButton("Cancel", icon_custom_emoji_id="5440660757194744323", callback_data="dep:cancel")]]),
+            reply_markup=kb([[InlineKeyboardButton("Cancel", style="danger", icon_custom_emoji_id="5440660757194744323", callback_data="dep:cancel")]]),
             parse_mode=None,
         )
         return
@@ -1455,7 +1455,7 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
             query.message,
             f"🗂 Buy Session — {country}\n\nPrice: ₹{price} per session\n\n"
             "Type how many sessions you want to buy (e.g. 10).",
-            reply_markup=kb([[InlineKeyboardButton("Cancel", icon_custom_emoji_id="5440660757194744323", callback_data="dep:cancel")]]),
+            reply_markup=kb([[InlineKeyboardButton("Cancel", style="danger", icon_custom_emoji_id="5440660757194744323", callback_data="dep:cancel")]]),
             parse_mode=None,
         )
         return
@@ -1530,8 +1530,8 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
             reply_markup=kb(
                 [
                     [
-                        InlineKeyboardButton("I Agree", icon_custom_emoji_id="5206607081334906820", callback_data=f"shop:agree:{country}:{year_token}"),
-                        InlineKeyboardButton("Decline", icon_custom_emoji_id="5440660757194744323", callback_data=f"shop:decline:{country}:{year_token}"),
+                        InlineKeyboardButton("I Agree", style="success", icon_custom_emoji_id="5206607081334906820", callback_data=f"shop:agree:{country}:{year_token}"),
+                        InlineKeyboardButton("Decline", style="danger", icon_custom_emoji_id="5440660757194744323", callback_data=f"shop:decline:{country}:{year_token}"),
                     ],
                     [InlineKeyboardButton("⬅️ Back", callback_data=f"shop:country:{country}")],
                 ]
@@ -1628,7 +1628,7 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
             f"Confirm purchase\n\nCountry: {country}\nYear: {year_token}\nPrice: {price_s} credits{discount_line}\n\n⚠️ No refunds other than OTP not received.",
             reply_markup=kb(
                 [
-                    [InlineKeyboardButton("Confirm Buy", icon_custom_emoji_id="5206607081334906820", callback_data=f"find:buygrp:{country}:{year_token}:{price_s}")],
+                    [InlineKeyboardButton("Confirm Buy", style="success", icon_custom_emoji_id="5206607081334906820", callback_data=f"find:buygrp:{country}:{year_token}:{price_s}")],
                     [InlineKeyboardButton("⬅️ Back", callback_data="menu:home")],
                 ]
             ),

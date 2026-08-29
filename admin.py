@@ -81,18 +81,18 @@ def admin_menu_keyboard() -> InlineKeyboardMarkup:
                 InlineKeyboardButton("👤 Credits", callback_data="admin:credits"),
             ],
             [
-                InlineKeyboardButton("📦 Accounts", callback_data="admin:accounts"),
-                InlineKeyboardButton("Deposits", icon_custom_emoji_id="5409048419211682843", callback_data="admin:deposits"),
-                InlineKeyboardButton("Active Credits", icon_custom_emoji_id="5409048419211682843", callback_data="admin:activecredits:0"),
+                InlineKeyboardButton("📦 Accounts", style="primary", callback_data="admin:accounts"),
+                InlineKeyboardButton("Deposits", style="primary", icon_custom_emoji_id="5409048419211682843", callback_data="admin:deposits"),
+                InlineKeyboardButton("Active Credits", style="primary", icon_custom_emoji_id="5409048419211682843", callback_data="admin:activecredits:0"),
             ],
             [
-                InlineKeyboardButton("Referrals", icon_custom_emoji_id="5337080053119336309", callback_data="admin:referrals:0"),
-                InlineKeyboardButton("Bulk Discount", icon_custom_emoji_id="5409048419211682843", callback_data="admin:bulkdiscount"),
-                InlineKeyboardButton("Session Price", icon_custom_emoji_id="5409048419211682843", callback_data="admin:sessionprice"),
+                InlineKeyboardButton("Referrals", style="primary", icon_custom_emoji_id="5337080053119336309", callback_data="admin:referrals:0"),
+                InlineKeyboardButton("Bulk Discount", style="primary", icon_custom_emoji_id="5409048419211682843", callback_data="admin:bulkdiscount"),
+                InlineKeyboardButton("Session Price", style="primary", icon_custom_emoji_id="5409048419211682843", callback_data="admin:sessionprice"),
             ],
             [
-                InlineKeyboardButton("Ban System", icon_custom_emoji_id="5440660757194744323", callback_data="admin:banmenu"),
-                InlineKeyboardButton("Stats", icon_custom_emoji_id="5449683594425410231", callback_data="admin:stats"),
+                InlineKeyboardButton("Ban System", style="danger", icon_custom_emoji_id="5440660757194744323", callback_data="admin:banmenu"),
+                InlineKeyboardButton("Stats", style="primary", icon_custom_emoji_id="5449683594425410231", callback_data="admin:stats"),
                 InlineKeyboardButton("🏠 Menu", callback_data="menu:home"),
             ],
         ]
@@ -102,8 +102,8 @@ def accounts_menu_keyboard() -> InlineKeyboardMarkup:
     return kb(
         [
             [
-                InlineKeyboardButton("Available Accounts", icon_custom_emoji_id="5206607081334906820", callback_data="admin:accounts:available:0"),
-                InlineKeyboardButton("Sold Accounts", icon_custom_emoji_id="5409048419211682843", callback_data="admin:accounts:sold:0"),
+                InlineKeyboardButton("Available Accounts", style="success", icon_custom_emoji_id="5206607081334906820", callback_data="admin:accounts:available:0"),
+                InlineKeyboardButton("Sold Accounts", style="primary", icon_custom_emoji_id="5409048419211682843", callback_data="admin:accounts:sold:0"),
             ],
             [InlineKeyboardButton("⬅️ Back", callback_data="admin:menu")],
         ]
@@ -153,8 +153,8 @@ def account_detail_keyboard(account_id: str) -> InlineKeyboardMarkup:
     return kb(
         [
             [
-                InlineKeyboardButton("✏️ Edit", callback_data=f"admin:account:edit:{account_id}"),
-                InlineKeyboardButton("Delete", icon_custom_emoji_id="5440660757194744323", callback_data=f"admin:account:delete:{account_id}"),
+                InlineKeyboardButton("✏️ Edit", style="primary", callback_data=f"admin:account:edit:{account_id}"),
+                InlineKeyboardButton("Delete", style="danger", icon_custom_emoji_id="5440660757194744323", callback_data=f"admin:account:delete:{account_id}"),
             ],
             [
                 InlineKeyboardButton("🛠️ Manage Devices", callback_data=f"dev:menu:{account_id}"),
@@ -167,8 +167,8 @@ def account_detail_keyboard(account_id: str) -> InlineKeyboardMarkup:
 def account_delete_confirm_keyboard(account_id: str) -> InlineKeyboardMarkup:
     return kb(
         [
-            [InlineKeyboardButton("Yes, delete", icon_custom_emoji_id="5206607081334906820", callback_data=f"admin:account:delete_confirm:{account_id}")],
-            [InlineKeyboardButton("Cancel", icon_custom_emoji_id="5440660757194744323", callback_data=f"admin:account:view:{account_id}")],
+            [InlineKeyboardButton("Yes, delete", style="success", icon_custom_emoji_id="5206607081334906820", callback_data=f"admin:account:delete_confirm:{account_id}")],
+            [InlineKeyboardButton("Cancel", style="danger", icon_custom_emoji_id="5440660757194744323", callback_data=f"admin:account:view:{account_id}")],
         ]
     )
 
@@ -193,9 +193,9 @@ def deposits_keyboard(
 ) -> InlineKeyboardMarkup:
     rows = [
         [
-            InlineKeyboardButton("🟡 Pending", callback_data="admin:deposits:pending:0"),
-            InlineKeyboardButton("🟢 Confirmed", callback_data="admin:deposits:approved:0"),
-            InlineKeyboardButton("All", icon_custom_emoji_id="5323442290708985472", callback_data="admin:deposits:all:0"),
+            InlineKeyboardButton("🟡 Pending", style="primary", callback_data="admin:deposits:pending:0"),
+            InlineKeyboardButton("🟢 Confirmed", style="primary", callback_data="admin:deposits:approved:0"),
+            InlineKeyboardButton("All", style="primary", icon_custom_emoji_id="5323442290708985472", callback_data="admin:deposits:all:0"),
         ]
     ]
     if deposits:
@@ -722,10 +722,10 @@ async def handle_admin_callback(update: Update, context: ContextTypes.DEFAULT_TY
             reply_markup=kb(
                 [
                     [
-                        InlineKeyboardButton("Ban", icon_custom_emoji_id="5440660757194744323", callback_data="admin:banmenu:ban"),
-                        InlineKeyboardButton("Unban", icon_custom_emoji_id="5206607081334906820", callback_data="admin:banmenu:unban"),
+                        InlineKeyboardButton("Ban", style="danger", icon_custom_emoji_id="5440660757194744323", callback_data="admin:banmenu:ban"),
+                        InlineKeyboardButton("Unban", style="success", icon_custom_emoji_id="5206607081334906820", callback_data="admin:banmenu:unban"),
                     ],
-                    [InlineKeyboardButton("Check Ban List", icon_custom_emoji_id="5323442290708985472", callback_data="admin:banlist:0")],
+                    [InlineKeyboardButton("Check Ban List", style="primary", icon_custom_emoji_id="5323442290708985472", callback_data="admin:banlist:0")],
                     [InlineKeyboardButton("⬅️ Back", callback_data="admin:menu")],
                 ]
             ),
@@ -1066,8 +1066,8 @@ async def handle_admin_callback(update: Update, context: ContextTypes.DEFAULT_TY
             action_markup = kb(
                 [
                     [
-                        InlineKeyboardButton("Set Credits & Approve", icon_custom_emoji_id="5206607081334906820", callback_data=f"admin:dep:setcredits:{dep_id}"),
-                        InlineKeyboardButton("Reject", icon_custom_emoji_id="5440660757194744323", callback_data=f"admin:dep:reject:{dep_id}"),
+                        InlineKeyboardButton("Set Credits & Approve", style="success", icon_custom_emoji_id="5206607081334906820", callback_data=f"admin:dep:setcredits:{dep_id}"),
+                        InlineKeyboardButton("Reject", style="danger", icon_custom_emoji_id="5440660757194744323", callback_data=f"admin:dep:reject:{dep_id}"),
                     ],
                     [InlineKeyboardButton("⬅️ Back", callback_data="admin:deposits")],
                 ]
@@ -1076,8 +1076,8 @@ async def handle_admin_callback(update: Update, context: ContextTypes.DEFAULT_TY
             action_markup = kb(
                 [
                     [
-                        InlineKeyboardButton("Approve", icon_custom_emoji_id="5206607081334906820", callback_data=f"admin:dep:approve:{dep_id}"),
-                        InlineKeyboardButton("Reject", icon_custom_emoji_id="5440660757194744323", callback_data=f"admin:dep:reject:{dep_id}"),
+                        InlineKeyboardButton("Approve", style="success", icon_custom_emoji_id="5206607081334906820", callback_data=f"admin:dep:approve:{dep_id}"),
+                        InlineKeyboardButton("Reject", style="danger", icon_custom_emoji_id="5440660757194744323", callback_data=f"admin:dep:reject:{dep_id}"),
                     ],
                     [InlineKeyboardButton("⬅️ Back", callback_data="admin:deposits")],
                 ]
