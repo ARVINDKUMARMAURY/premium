@@ -61,6 +61,7 @@ except ImportError as e:
 
 import admin as admin_module
 import device_manager
+from premium_emoji import EMOJI_MAP as PREMIUM_EMOJI_MAP
 from config import (
     ADMIN_USER_IDS,
     BOT_TOKEN,
@@ -257,7 +258,12 @@ def countries_keyboard(countries: list[dict]) -> InlineKeyboardMarkup:
         code = c.get("country") or "?"
         emoji = c.get("country_emoji") or ""
         count = c.get("count", 0)
-        current.append(InlineKeyboardButton(f"{emoji} {code} ({count})", callback_data=f"shop:country:{code}"))
+        flag_id = PREMIUM_EMOJI_MAP.get(emoji)
+        if flag_id:
+            btn = InlineKeyboardButton(f"{code} ({count})", style="primary", icon_custom_emoji_id=flag_id, callback_data=f"shop:country:{code}")
+        else:
+            btn = InlineKeyboardButton(f"{emoji} {code} ({count})", callback_data=f"shop:country:{code}")
+        current.append(btn)
         if len(current) == 2:
             rows.append(current)
             current = []
