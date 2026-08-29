@@ -18,6 +18,7 @@ from telegram import MessageEntity, Bot, Message, CallbackQuery
 # Same IDs used for the button icons.
 EMOJI_MAP = {
     "🔥": "5424972470023104089",
+    "🛒": "5424972470023104089",
     "✅": "5206607081334906820",
     "💲": "5409048419211682843",
     "💰": "5409048419211682843",
