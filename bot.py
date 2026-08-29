@@ -61,7 +61,18 @@ except ImportError as e:
 
 import admin as admin_module
 import device_manager
-from premium_emoji import EMOJI_MAP as PREMIUM_EMOJI_MAP
+from premium_emoji import EMOJI_MAP as PREMIUM_EMOJI_MAP, build_premium_entities
+
+# Local-only premium emoji overrides for the "Refer & Earn" message — these
+# custom emoji IDs are different from (and don't affect) the global set used
+# everywhere else in the bot.
+REFER_EMOJI_MAP = {
+    "🤝": "5463249828450424568",
+    "📊": "5231200819986047254",
+    "👥": "5249053508681883137",
+    "💰": "5224257782013769471",
+    "🔗": "5379742233853451967",
+}
 from config import (
     ADMIN_USER_IDS,
     BOT_TOKEN,
@@ -184,18 +195,19 @@ async def safe_edit(
     *,
     reply_markup: InlineKeyboardMarkup | None = None,
     parse_mode=ParseMode.MARKDOWN,
+    entities=None,
 ):
     try:
         if getattr(message, "photo", None) and (getattr(message, "text", None) in (None, "")):
-            return await message.edit_caption(caption=text, parse_mode=parse_mode, reply_markup=reply_markup)
-        return await message.edit_text(text=text, parse_mode=parse_mode, reply_markup=reply_markup)
+            return await message.edit_caption(caption=text, parse_mode=parse_mode, reply_markup=reply_markup, caption_entities=entities)
+        return await message.edit_text(text=text, parse_mode=parse_mode, reply_markup=reply_markup, entities=entities)
     except BadRequest as e:
         if "Message is not modified" in str(e):
             return None
         raise
     except Exception:
         try:
-            return await message.edit_text(text=text, parse_mode=parse_mode, reply_markup=reply_markup)
+            return await message.edit_text(text=text, parse_mode=parse_mode, reply_markup=reply_markup, entities=entities)
         except BadRequest as e:
             if "Message is not modified" in str(e):
                 return None
@@ -1202,7 +1214,8 @@ async def on_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             "🔗 Your Referral Link\n"
             f"{_ref_link(uid)}"
         )
-        await update.message.reply_text(msg, parse_mode=None, reply_markup=reply_menu(is_admin(uid)))
+        entities = build_premium_entities(msg, REFER_EMOJI_MAP)
+        await update.message.reply_text(msg, parse_mode=None, entities=entities, reply_markup=reply_menu(is_admin(uid)))
         return
 
     if text_in == "🆘 Support":
@@ -1323,7 +1336,8 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
             "🔗 Your Referral Link\n"
             f"{_ref_link(uid)}"
         )
-        await safe_edit(query.message, text, reply_markup=kb([[InlineKeyboardButton("Back", style="primary", icon_custom_emoji_id="5416113713428057601", callback_data="menu:home")]]), parse_mode=None)
+        entities = build_premium_entities(text, REFER_EMOJI_MAP)
+        await safe_edit(query.message, text, reply_markup=kb([[InlineKeyboardButton("Back", style="primary", icon_custom_emoji_id="5416113713428057601", callback_data="menu:home")]]), parse_mode=None, entities=entities)
         return
 
     if data == "menu:home":

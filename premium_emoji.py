@@ -52,15 +52,19 @@ def _utf16_len(s: str) -> int:
     return len(s.encode("utf-16-le")) // 2
 
 
-def build_premium_entities(text: str):
-    """Scan text and return MessageEntity(custom_emoji) for every known emoji found."""
+def build_premium_entities(text: str, emoji_map: dict | None = None):
+    """Scan text and return MessageEntity(custom_emoji) for every known emoji found.
+    Pass emoji_map to use a custom set (e.g. for a single message) instead of the
+    global EMOJI_MAP used everywhere else in the bot."""
     if not text:
         return []
+    m = emoji_map if emoji_map is not None else EMOJI_MAP
+    keys = sorted(m.keys(), key=len, reverse=True)
     entities = []
     i = 0
     while i < len(text):
         matched = None
-        for emoji in _EMOJI_KEYS:
+        for emoji in keys:
             if text.startswith(emoji, i):
                 matched = emoji
                 break
@@ -72,7 +76,7 @@ def build_premium_entities(text: str):
                     type=MessageEntity.CUSTOM_EMOJI,
                     offset=offset,
                     length=length,
-                    custom_emoji_id=EMOJI_MAP[matched],
+                    custom_emoji_id=m[matched],
                 )
             )
             i += len(matched)
