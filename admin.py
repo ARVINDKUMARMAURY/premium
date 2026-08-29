@@ -93,7 +93,7 @@ def admin_menu_keyboard() -> InlineKeyboardMarkup:
             [
                 InlineKeyboardButton("Ban System", style="danger", icon_custom_emoji_id="5440660757194744323", callback_data="admin:banmenu"),
                 InlineKeyboardButton("Stats", style="primary", icon_custom_emoji_id="5449683594425410231", callback_data="admin:stats"),
-                InlineKeyboardButton("🏠 Menu", style="primary", callback_data="menu:home"),
+                InlineKeyboardButton("Menu", style="primary", icon_custom_emoji_id="6323507086072223557", callback_data="menu:home"),
             ],
         ]
     )

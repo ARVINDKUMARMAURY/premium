@@ -344,7 +344,7 @@ def buy_confirm_keyboard(country: str, year_token: str) -> InlineKeyboardMarkup:
             [InlineKeyboardButton("Confirm Buy", style="success", icon_custom_emoji_id="5206607081334906820", callback_data=f"shop:buy:{country}:{year_token}")],
             [
                 InlineKeyboardButton("Back", style="primary", icon_custom_emoji_id="5416113713428057601", callback_data=f"shop:country:{country}"),
-                InlineKeyboardButton("🏠 Menu", style="primary", callback_data="menu:home"),
+                InlineKeyboardButton("Menu", style="primary", icon_custom_emoji_id="6323507086072223557", callback_data="menu:home"),
             ],
         ]
     )
@@ -1167,7 +1167,7 @@ async def on_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             reply_markup=kb(
                 [
                     [InlineKeyboardButton("BharatPe (UPI)", style="primary", icon_custom_emoji_id="5409048419211682843", callback_data="dep:upi")],
-                    [InlineKeyboardButton("🏠 Menu", style="primary", callback_data="menu:home")],
+                    [InlineKeyboardButton("Menu", style="primary", icon_custom_emoji_id="6323507086072223557", callback_data="menu:home")],
                 ]
             ),
         )
@@ -1186,7 +1186,7 @@ async def on_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         else:
             for p in items:
                 lines.append(f"• +{p.get('phone','')} | {p.get('country','')} | {p.get('year')} | {p.get('price')} credits")
-        await update.message.reply_text("\n".join(lines), parse_mode=ParseMode.MARKDOWN, reply_markup=kb([[InlineKeyboardButton("🏠 Menu", style="primary", callback_data="menu:home")]]))
+        await update.message.reply_text("\n".join(lines), parse_mode=ParseMode.MARKDOWN, reply_markup=kb([[InlineKeyboardButton("Menu", style="primary", icon_custom_emoji_id="6323507086072223557", callback_data="menu:home")]]))
         return
 
     if text_in in {"🤝 Refer & Earn", "🎁 Refer & Earn", "🎁 Refer & Get Discount"}:
@@ -1270,7 +1270,7 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
         ok, msg = await _bharatpe_verify_and_credit(repo, context, uid, username, utr)
         if ok:
             STATE.pop(uid, None)
-            await safe_edit(query.message, msg, reply_markup=kb([[InlineKeyboardButton("🏠 Menu", style="primary", callback_data="menu:home")]]), parse_mode=None)
+            await safe_edit(query.message, msg, reply_markup=kb([[InlineKeyboardButton("Menu", style="primary", icon_custom_emoji_id="6323507086072223557", callback_data="menu:home")]]), parse_mode=None)
         else:
             retry_kb = kb([
                 [InlineKeyboardButton("🔄 Check Again", callback_data=f"bpcheck:{utr}")],
@@ -1367,7 +1367,7 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
         rows = []
         if nav:
             rows.append(nav)
-        rows.append([InlineKeyboardButton("🏠 Menu", style="primary", callback_data="menu:home")])
+        rows.append([InlineKeyboardButton("Menu", style="primary", icon_custom_emoji_id="6323507086072223557", callback_data="menu:home")])
         await safe_edit(query.message, "\n".join(lines), reply_markup=kb(rows), parse_mode=ParseMode.MARKDOWN)
         return
 
@@ -1380,7 +1380,7 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
             reply_markup=kb(
                 [
                     [InlineKeyboardButton("BharatPe (UPI)", style="primary", icon_custom_emoji_id="5409048419211682843", callback_data="dep:upi")],
-                    [InlineKeyboardButton("🏠 Menu", style="primary", callback_data="menu:home")],
+                    [InlineKeyboardButton("Menu", style="primary", icon_custom_emoji_id="6323507086072223557", callback_data="menu:home")],
                 ]
             ),
             parse_mode=ParseMode.MARKDOWN,
