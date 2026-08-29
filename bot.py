@@ -229,7 +229,7 @@ def main_menu(is_admin: bool) -> InlineKeyboardMarkup:
     return kb(rows)
 
 def back_to_menu() -> InlineKeyboardMarkup:
-    return kb([[InlineKeyboardButton("⬅️ Back", callback_data="menu:home")]])
+    return kb([[InlineKeyboardButton("⬅️ Back", style="primary", callback_data="menu:home")]])
 
 def countries_keyboard(countries: list[dict]) -> InlineKeyboardMarkup:
     rows: list[list[InlineKeyboardButton]] = []
@@ -244,7 +244,7 @@ def countries_keyboard(countries: list[dict]) -> InlineKeyboardMarkup:
             current = []
     if current:
         rows.append(current)
-    rows.append([InlineKeyboardButton("⬅️ Back", callback_data="menu:home")])
+    rows.append([InlineKeyboardButton("⬅️ Back", style="primary", callback_data="menu:home")])
     return kb(rows)
 
 def _find_results_kb(groups: list[dict[str, Any]], *, max_price: int, page: int, total: int) -> InlineKeyboardMarkup:
@@ -275,12 +275,12 @@ def _find_results_kb(groups: list[dict[str, Any]], *, max_price: int, page: int,
     max_page = max(0, (total - 1) // page_size) if total else 0
     nav: list[InlineKeyboardButton] = []
     if page > 0:
-        nav.append(InlineKeyboardButton("⬅️ Prev", callback_data=f"find:page:{max_price}:{page-1}"))
+        nav.append(InlineKeyboardButton("⬅️ Prev", style="primary", callback_data=f"find:page:{max_price}:{page-1}"))
     if page < max_page:
-        nav.append(InlineKeyboardButton("Next ➡️", callback_data=f"find:page:{max_price}:{page+1}"))
+        nav.append(InlineKeyboardButton("Next ➡️", style="primary", callback_data=f"find:page:{max_price}:{page+1}"))
     if nav:
         rows.append(nav)
-    rows.append([InlineKeyboardButton("⬅️ Back", callback_data="menu:home")])
+    rows.append([InlineKeyboardButton("⬅️ Back", style="primary", callback_data="menu:home")])
     return kb(rows)
 
 def years_keyboard(country: str, years: list[dict]) -> InlineKeyboardMarkup:
@@ -310,7 +310,7 @@ def years_keyboard(country: str, years: list[dict]) -> InlineKeyboardMarkup:
             cur = []
     if cur:
         rows.append(cur)
-    rows.append([InlineKeyboardButton("⬅️ Back", callback_data="shop:countries")])
+    rows.append([InlineKeyboardButton("⬅️ Back", style="primary", callback_data="shop:countries")])
     return kb(rows)
 
 def buy_confirm_keyboard(country: str, year_token: str) -> InlineKeyboardMarkup:
@@ -318,8 +318,8 @@ def buy_confirm_keyboard(country: str, year_token: str) -> InlineKeyboardMarkup:
         [
             [InlineKeyboardButton("Confirm Buy", style="success", icon_custom_emoji_id="5206607081334906820", callback_data=f"shop:buy:{country}:{year_token}")],
             [
-                InlineKeyboardButton("⬅️ Back", callback_data=f"shop:country:{country}"),
-                InlineKeyboardButton("🏠 Menu", callback_data="menu:home"),
+                InlineKeyboardButton("⬅️ Back", style="primary", callback_data=f"shop:country:{country}"),
+                InlineKeyboardButton("🏠 Menu", style="primary", callback_data="menu:home"),
             ],
         ]
     )
@@ -556,7 +556,7 @@ class AccountManager:
                         [
                             [
                                 InlineKeyboardButton(
-                                    "🛠️ Manage Devices",
+                                    "🛠️ Manage Devices", style="primary",
                                     callback_data=f"dev:menu:{str(account_id)}",
                                 )
                             ]
@@ -839,7 +839,7 @@ async def send_purchase_details(update: Update, context: ContextTypes.DEFAULT_TY
         msg,
         parse_mode=ParseMode.MARKDOWN,
         reply_markup=kb(
-            [[InlineKeyboardButton("🛠️ Manage Devices", callback_data=f"dev:menu:{str(account['_id'])}")]]
+            [[InlineKeyboardButton("🛠️ Manage Devices", style="primary", callback_data=f"dev:menu:{str(account['_id'])}")]]
         ),
     )
     await account_manager.ensure_connected_for_account(account["_id"], account, uid)
@@ -1141,7 +1141,7 @@ async def on_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             reply_markup=kb(
                 [
                     [InlineKeyboardButton("BharatPe (UPI)", style="primary", icon_custom_emoji_id="5409048419211682843", callback_data="dep:upi")],
-                    [InlineKeyboardButton("🏠 Menu", callback_data="menu:home")],
+                    [InlineKeyboardButton("🏠 Menu", style="primary", callback_data="menu:home")],
                 ]
             ),
         )
@@ -1160,7 +1160,7 @@ async def on_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         else:
             for p in items:
                 lines.append(f"• +{p.get('phone','')} | {p.get('country','')} | {p.get('year')} | {p.get('price')} credits")
-        await update.message.reply_text("\n".join(lines), parse_mode=ParseMode.MARKDOWN, reply_markup=kb([[InlineKeyboardButton("🏠 Menu", callback_data="menu:home")]]))
+        await update.message.reply_text("\n".join(lines), parse_mode=ParseMode.MARKDOWN, reply_markup=kb([[InlineKeyboardButton("🏠 Menu", style="primary", callback_data="menu:home")]]))
         return
 
     if text_in in {"🤝 Refer & Earn", "🎁 Refer & Earn", "🎁 Refer & Get Discount"}:
@@ -1184,7 +1184,7 @@ async def on_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         return
 
     if text_in == "🛠 Admin" and is_admin(uid):
-        await update.message.reply_text("Admin Panel:", reply_markup=kb([[InlineKeyboardButton("Open", callback_data="admin:menu")]]))
+        await update.message.reply_text("Admin Panel:", reply_markup=kb([[InlineKeyboardButton("Open", style="primary", callback_data="admin:menu")]]))
         return
 
 # ---------- Document Handler ----------
@@ -1244,7 +1244,7 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
         ok, msg = await _bharatpe_verify_and_credit(repo, context, uid, username, utr)
         if ok:
             STATE.pop(uid, None)
-            await safe_edit(query.message, msg, reply_markup=kb([[InlineKeyboardButton("🏠 Menu", callback_data="menu:home")]]), parse_mode=None)
+            await safe_edit(query.message, msg, reply_markup=kb([[InlineKeyboardButton("🏠 Menu", style="primary", callback_data="menu:home")]]), parse_mode=None)
         else:
             retry_kb = kb([
                 [InlineKeyboardButton("🔄 Check Again", callback_data=f"bpcheck:{utr}")],
@@ -1297,7 +1297,7 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
             "🔗 Your Referral Link\n"
             f"{_ref_link(uid)}"
         )
-        await safe_edit(query.message, text, reply_markup=kb([[InlineKeyboardButton("⬅️ Back", callback_data="menu:home")]]), parse_mode=None)
+        await safe_edit(query.message, text, reply_markup=kb([[InlineKeyboardButton("⬅️ Back", style="primary", callback_data="menu:home")]]), parse_mode=None)
         return
 
     if data == "menu:home":
@@ -1335,13 +1335,13 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
                 lines.append(f"• +{phone} | {country} | {year} | {price} credits")
         nav = []
         if page > 0:
-            nav.append(InlineKeyboardButton("⬅️ Prev", callback_data=f"me:history:{page-1}"))
+            nav.append(InlineKeyboardButton("⬅️ Prev", style="primary", callback_data=f"me:history:{page-1}"))
         if page < max_page:
-            nav.append(InlineKeyboardButton("Next ➡️", callback_data=f"me:history:{page+1}"))
+            nav.append(InlineKeyboardButton("Next ➡️", style="primary", callback_data=f"me:history:{page+1}"))
         rows = []
         if nav:
             rows.append(nav)
-        rows.append([InlineKeyboardButton("🏠 Menu", callback_data="menu:home")])
+        rows.append([InlineKeyboardButton("🏠 Menu", style="primary", callback_data="menu:home")])
         await safe_edit(query.message, "\n".join(lines), reply_markup=kb(rows), parse_mode=ParseMode.MARKDOWN)
         return
 
@@ -1354,7 +1354,7 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
             reply_markup=kb(
                 [
                     [InlineKeyboardButton("BharatPe (UPI)", style="primary", icon_custom_emoji_id="5409048419211682843", callback_data="dep:upi")],
-                    [InlineKeyboardButton("🏠 Menu", callback_data="menu:home")],
+                    [InlineKeyboardButton("🏠 Menu", style="primary", callback_data="menu:home")],
                 ]
             ),
             parse_mode=ParseMode.MARKDOWN,
@@ -1428,7 +1428,7 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
                 current = []
         if current:
             rows.append(current)
-        rows.append([InlineKeyboardButton("⬅️ Back", callback_data="menu:home")])
+        rows.append([InlineKeyboardButton("⬅️ Back", style="primary", callback_data="menu:home")])
         await safe_edit(
             query.message,
             "🗂 Buy Session\n\nChoose a country (price shown per session):",
@@ -1446,7 +1446,7 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
             await safe_edit(
                 query.message,
                 "❌ This country isn't priced for session sale anymore. Please go back and pick another.",
-                reply_markup=kb([[InlineKeyboardButton("⬅️ Back", callback_data="session:start")]]),
+                reply_markup=kb([[InlineKeyboardButton("⬅️ Back", style="primary", callback_data="session:start")]]),
                 parse_mode=None,
             )
             return
@@ -1533,7 +1533,7 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
                         InlineKeyboardButton("I Agree", style="success", icon_custom_emoji_id="5206607081334906820", callback_data=f"shop:agree:{country}:{year_token}"),
                         InlineKeyboardButton("Decline", style="danger", icon_custom_emoji_id="5440660757194744323", callback_data=f"shop:decline:{country}:{year_token}"),
                     ],
-                    [InlineKeyboardButton("⬅️ Back", callback_data=f"shop:country:{country}")],
+                    [InlineKeyboardButton("⬅️ Back", style="primary", callback_data=f"shop:country:{country}")],
                 ]
             ),
         )
@@ -1629,7 +1629,7 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
             reply_markup=kb(
                 [
                     [InlineKeyboardButton("Confirm Buy", style="success", icon_custom_emoji_id="5206607081334906820", callback_data=f"find:buygrp:{country}:{year_token}:{price_s}")],
-                    [InlineKeyboardButton("⬅️ Back", callback_data="menu:home")],
+                    [InlineKeyboardButton("⬅️ Back", style="primary", callback_data="menu:home")],
                 ]
             ),
             parse_mode=None,

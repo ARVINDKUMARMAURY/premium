@@ -76,8 +76,8 @@ def admin_menu_keyboard() -> InlineKeyboardMarkup:
     return kb(
         [
             [
-                InlineKeyboardButton("➕ Add Account", callback_data="admin:addaccount"),
-                InlineKeyboardButton("📤 Upload Session", callback_data="admin:upload_session"),
+                InlineKeyboardButton("➕ Add Account", style="success", callback_data="admin:addaccount"),
+                InlineKeyboardButton("📤 Upload Session", style="success", callback_data="admin:upload_session"),
                 InlineKeyboardButton("👤 Credits", callback_data="admin:credits"),
             ],
             [
@@ -93,7 +93,7 @@ def admin_menu_keyboard() -> InlineKeyboardMarkup:
             [
                 InlineKeyboardButton("Ban System", style="danger", icon_custom_emoji_id="5440660757194744323", callback_data="admin:banmenu"),
                 InlineKeyboardButton("Stats", style="primary", icon_custom_emoji_id="5449683594425410231", callback_data="admin:stats"),
-                InlineKeyboardButton("🏠 Menu", callback_data="menu:home"),
+                InlineKeyboardButton("🏠 Menu", style="primary", callback_data="menu:home"),
             ],
         ]
     )
@@ -105,7 +105,7 @@ def accounts_menu_keyboard() -> InlineKeyboardMarkup:
                 InlineKeyboardButton("Available Accounts", style="success", icon_custom_emoji_id="5206607081334906820", callback_data="admin:accounts:available:0"),
                 InlineKeyboardButton("Sold Accounts", style="primary", icon_custom_emoji_id="5409048419211682843", callback_data="admin:accounts:sold:0"),
             ],
-            [InlineKeyboardButton("⬅️ Back", callback_data="admin:menu")],
+            [InlineKeyboardButton("⬅️ Back", style="primary", callback_data="admin:menu")],
         ]
     )
 
@@ -141,12 +141,12 @@ def accounts_list_keyboard(
         )
     nav = []
     if has_prev:
-        nav.append(InlineKeyboardButton("⬅️ Prev", callback_data=f"admin:accounts:{filter_key}:{page-1}"))
+        nav.append(InlineKeyboardButton("⬅️ Prev", style="primary", callback_data=f"admin:accounts:{filter_key}:{page-1}"))
     if has_next:
-        nav.append(InlineKeyboardButton("Next ➡️", callback_data=f"admin:accounts:{filter_key}:{page+1}"))
+        nav.append(InlineKeyboardButton("Next ➡️", style="primary", callback_data=f"admin:accounts:{filter_key}:{page+1}"))
     if nav:
         rows.append(nav)
-    rows.append([InlineKeyboardButton("⬅️ Back", callback_data="admin:accounts")])
+    rows.append([InlineKeyboardButton("⬅️ Back", style="primary", callback_data="admin:accounts")])
     return kb(rows)
 
 def account_detail_keyboard(account_id: str) -> InlineKeyboardMarkup:
@@ -157,10 +157,10 @@ def account_detail_keyboard(account_id: str) -> InlineKeyboardMarkup:
                 InlineKeyboardButton("Delete", style="danger", icon_custom_emoji_id="5440660757194744323", callback_data=f"admin:account:delete:{account_id}"),
             ],
             [
-                InlineKeyboardButton("🛠️ Manage Devices", callback_data=f"dev:menu:{account_id}"),
-                InlineKeyboardButton("📱 Get OTP", callback_data=f"admin:account:getotp:{account_id}"),
+                InlineKeyboardButton("🛠️ Manage Devices", style="primary", callback_data=f"dev:menu:{account_id}"),
+                InlineKeyboardButton("📱 Get OTP", style="primary", callback_data=f"admin:account:getotp:{account_id}"),
             ],
-            [InlineKeyboardButton("⬅️ Back", callback_data="admin:accounts")],
+            [InlineKeyboardButton("⬅️ Back", style="primary", callback_data="admin:accounts")],
         ]
     )
 
@@ -175,13 +175,13 @@ def account_delete_confirm_keyboard(account_id: str) -> InlineKeyboardMarkup:
 def active_credits_keyboard(page: int, has_prev: bool, has_next: bool) -> InlineKeyboardMarkup:
     nav = []
     if has_prev:
-        nav.append(InlineKeyboardButton("⬅️ Prev", callback_data=f"admin:activecredits:{page-1}"))
+        nav.append(InlineKeyboardButton("⬅️ Prev", style="primary", callback_data=f"admin:activecredits:{page-1}"))
     if has_next:
-        nav.append(InlineKeyboardButton("Next ➡️", callback_data=f"admin:activecredits:{page+1}"))
+        nav.append(InlineKeyboardButton("Next ➡️", style="primary", callback_data=f"admin:activecredits:{page+1}"))
     rows = []
     if nav:
         rows.append(nav)
-    rows.append([InlineKeyboardButton("⬅️ Back", callback_data="admin:menu")])
+    rows.append([InlineKeyboardButton("⬅️ Back", style="primary", callback_data="admin:menu")])
     return kb(rows)
 
 def deposits_keyboard(
@@ -206,12 +206,12 @@ def deposits_keyboard(
             rows.append([InlineKeyboardButton(f"🔎 View {amt} | {uid}", callback_data=f"admin:dep:view:{dep_id}")])
     nav = []
     if has_prev:
-        nav.append(InlineKeyboardButton("⬅️ Prev", callback_data=f"admin:deposits:{filter_key}:{page-1}"))
+        nav.append(InlineKeyboardButton("⬅️ Prev", style="primary", callback_data=f"admin:deposits:{filter_key}:{page-1}"))
     if has_next:
-        nav.append(InlineKeyboardButton("Next ➡️", callback_data=f"admin:deposits:{filter_key}:{page+1}"))
+        nav.append(InlineKeyboardButton("Next ➡️", style="primary", callback_data=f"admin:deposits:{filter_key}:{page+1}"))
     if nav:
         rows.append(nav)
-    rows.append([InlineKeyboardButton("⬅️ Back", callback_data="admin:menu")])
+    rows.append([InlineKeyboardButton("⬅️ Back", style="primary", callback_data="admin:menu")])
     return kb(rows)
 
 # ---------- Helper: detect country ----------
@@ -480,10 +480,10 @@ async def handle_admin_callback(update: Update, context: ContextTypes.DEFAULT_TY
             reply_markup=kb(
                 [
                     [
-                        InlineKeyboardButton("➕ Add", callback_data="admin:credits:add"),
-                        InlineKeyboardButton("➖ Remove", callback_data="admin:credits:remove"),
+                        InlineKeyboardButton("➕ Add", style="success", callback_data="admin:credits:add"),
+                        InlineKeyboardButton("➖ Remove", style="danger", callback_data="admin:credits:remove"),
                     ],
-                    [InlineKeyboardButton("⬅️ Back", callback_data="admin:menu")],
+                    [InlineKeyboardButton("⬅️ Back", style="primary", callback_data="admin:menu")],
                 ]
             ),
         )
@@ -503,7 +503,7 @@ async def handle_admin_callback(update: Update, context: ContextTypes.DEFAULT_TY
             query.message,
             f"👤 *Credits ({mode})*\n\nSend in one line:\n`<user_id> <amount>`\n\nOr press Cancel.",
             parse_mode=ParseMode.MARKDOWN,
-            reply_markup=kb([[InlineKeyboardButton("⬅️ Back", callback_data="admin:credits")]]),
+            reply_markup=kb([[InlineKeyboardButton("⬅️ Back", style="primary", callback_data="admin:credits")]]),
         )
         await query.message.reply_text("Press Cancel to stop.", reply_markup=cancel_reply_kb())
         return True
@@ -567,14 +567,14 @@ async def handle_admin_callback(update: Update, context: ContextTypes.DEFAULT_TY
             parse_mode=None,
             reply_markup=kb(
                 [
-                    [InlineKeyboardButton("✏️ Set %", callback_data="admin:bulkdiscount:set")],
+                    [InlineKeyboardButton("✏️ Set %", style="primary", callback_data="admin:bulkdiscount:set")],
                     [
                         InlineKeyboardButton(
                             "⛔ Turn OFF" if enabled else "✅ Turn ON",
                             callback_data="admin:bulkdiscount:off" if enabled else "admin:bulkdiscount:on",
                         )
                     ],
-                    [InlineKeyboardButton("⬅️ Back", callback_data="admin:menu")],
+                    [InlineKeyboardButton("⬅️ Back", style="primary", callback_data="admin:menu")],
                 ]
             ),
         )
@@ -604,14 +604,14 @@ async def handle_admin_callback(update: Update, context: ContextTypes.DEFAULT_TY
             parse_mode=None,
             reply_markup=kb(
                 [
-                    [InlineKeyboardButton("✏️ Set %", callback_data="admin:bulkdiscount:set")],
+                    [InlineKeyboardButton("✏️ Set %", style="primary", callback_data="admin:bulkdiscount:set")],
                     [
                         InlineKeyboardButton(
                             "⛔ Turn OFF" if enabled2 else "✅ Turn ON",
                             callback_data="admin:bulkdiscount:off" if enabled2 else "admin:bulkdiscount:on",
                         )
                     ],
-                    [InlineKeyboardButton("⬅️ Back", callback_data="admin:menu")],
+                    [InlineKeyboardButton("⬅️ Back", style="primary", callback_data="admin:menu")],
                 ]
             ),
         )
@@ -639,14 +639,14 @@ async def handle_admin_callback(update: Update, context: ContextTypes.DEFAULT_TY
             parse_mode=None,
             reply_markup=kb(
                 [
-                    [InlineKeyboardButton("✏️ Set %", callback_data="admin:bulkdiscount:set")],
+                    [InlineKeyboardButton("✏️ Set %", style="primary", callback_data="admin:bulkdiscount:set")],
                     [
                         InlineKeyboardButton(
                             "⛔ Turn OFF" if enabled2 else "✅ Turn ON",
                             callback_data="admin:bulkdiscount:off" if enabled2 else "admin:bulkdiscount:on",
                         )
                     ],
-                    [InlineKeyboardButton("⬅️ Back", callback_data="admin:menu")],
+                    [InlineKeyboardButton("⬅️ Back", style="primary", callback_data="admin:menu")],
                 ]
             ),
         )
@@ -672,7 +672,7 @@ async def handle_admin_callback(update: Update, context: ContextTypes.DEFAULT_TY
                 query.message,
                 "🗂 Session Price\n\nNo countries with available stock right now. Add accounts first.",
                 parse_mode=None,
-                reply_markup=kb([[InlineKeyboardButton("⬅️ Back", callback_data="admin:menu")]]),
+                reply_markup=kb([[InlineKeyboardButton("⬅️ Back", style="primary", callback_data="admin:menu")]]),
             )
             return True
         rows: list[list[InlineKeyboardButton]] = []
@@ -689,7 +689,7 @@ async def handle_admin_callback(update: Update, context: ContextTypes.DEFAULT_TY
                 current = []
         if current:
             rows.append(current)
-        rows.append([InlineKeyboardButton("⬅️ Back", callback_data="admin:menu")])
+        rows.append([InlineKeyboardButton("⬅️ Back", style="primary", callback_data="admin:menu")])
         await safe_edit(
             query.message,
             "🗂 Session Price (per country)\n\nTap a country to set its per-session price for the 'Buy Session' feature.\n₹0 = not for sale.",
@@ -726,7 +726,7 @@ async def handle_admin_callback(update: Update, context: ContextTypes.DEFAULT_TY
                         InlineKeyboardButton("Unban", style="success", icon_custom_emoji_id="5206607081334906820", callback_data="admin:banmenu:unban"),
                     ],
                     [InlineKeyboardButton("Check Ban List", style="primary", icon_custom_emoji_id="5323442290708985472", callback_data="admin:banlist:0")],
-                    [InlineKeyboardButton("⬅️ Back", callback_data="admin:menu")],
+                    [InlineKeyboardButton("⬅️ Back", style="primary", callback_data="admin:menu")],
                 ]
             ),
         )
@@ -761,12 +761,12 @@ async def handle_admin_callback(update: Update, context: ContextTypes.DEFAULT_TY
         nav = []
         btns = []
         if page > 0:
-            btns.append(InlineKeyboardButton("⬅️ Prev", callback_data=f"admin:banlist:{page-1}"))
+            btns.append(InlineKeyboardButton("⬅️ Prev", style="primary", callback_data=f"admin:banlist:{page-1}"))
         if page < max_page:
-            btns.append(InlineKeyboardButton("Next ➡️", callback_data=f"admin:banlist:{page+1}"))
+            btns.append(InlineKeyboardButton("Next ➡️", style="primary", callback_data=f"admin:banlist:{page+1}"))
         if btns:
             nav.append(btns)
-        nav.append([InlineKeyboardButton("⬅️ Back", callback_data="admin:banmenu")])
+        nav.append([InlineKeyboardButton("⬅️ Back", style="primary", callback_data="admin:banmenu")])
         await safe_edit(query.message, "\n".join(lines), parse_mode=None, reply_markup=kb(nav))
         return True
 
@@ -812,12 +812,12 @@ async def handle_admin_callback(update: Update, context: ContextTypes.DEFAULT_TY
         nav = []
         btns = []
         if page > 0:
-            btns.append(InlineKeyboardButton("⬅️ Prev", callback_data=f"admin:referrals:{page-1}"))
+            btns.append(InlineKeyboardButton("⬅️ Prev", style="primary", callback_data=f"admin:referrals:{page-1}"))
         if page < max_page:
-            btns.append(InlineKeyboardButton("Next ➡️", callback_data=f"admin:referrals:{page+1}"))
+            btns.append(InlineKeyboardButton("Next ➡️", style="primary", callback_data=f"admin:referrals:{page+1}"))
         if btns:
             nav.append(btns)
-        nav.append([InlineKeyboardButton("⬅️ Back", callback_data="admin:menu")])
+        nav.append([InlineKeyboardButton("⬅️ Back", style="primary", callback_data="admin:menu")])
         await safe_edit(query.message, "\n".join(lines), parse_mode=None, reply_markup=kb(nav))
         return True
 
@@ -882,7 +882,7 @@ async def handle_admin_callback(update: Update, context: ContextTypes.DEFAULT_TY
             f"✅ Available: *{available}*\n"
             f"💸 Sold: *{sold}*\n"
         )
-        await safe_edit(query.message, text, parse_mode=ParseMode.MARKDOWN, reply_markup=kb([[InlineKeyboardButton("⬅️ Back", callback_data="admin:menu")]]))
+        await safe_edit(query.message, text, parse_mode=ParseMode.MARKDOWN, reply_markup=kb([[InlineKeyboardButton("⬅️ Back", style="primary", callback_data="admin:menu")]]))
         return True
 
     if data == "admin:deposits":
@@ -1042,8 +1042,8 @@ async def handle_admin_callback(update: Update, context: ContextTypes.DEFAULT_TY
             parse_mode=ParseMode.MARKDOWN,
             reply_markup=kb(
                 [
-                    [InlineKeyboardButton("🔄 Retry OTP", callback_data=f"admin:account:getotp:{acc_id_s}")],
-                    [InlineKeyboardButton("⬅️ Back", callback_data=f"admin:account:view:{acc_id_s}")],
+                    [InlineKeyboardButton("🔄 Retry OTP", style="primary", callback_data=f"admin:account:getotp:{acc_id_s}")],
+                    [InlineKeyboardButton("⬅️ Back", style="primary", callback_data=f"admin:account:view:{acc_id_s}")],
                 ]
             ),
         )
@@ -1069,7 +1069,7 @@ async def handle_admin_callback(update: Update, context: ContextTypes.DEFAULT_TY
                         InlineKeyboardButton("Set Credits & Approve", style="success", icon_custom_emoji_id="5206607081334906820", callback_data=f"admin:dep:setcredits:{dep_id}"),
                         InlineKeyboardButton("Reject", style="danger", icon_custom_emoji_id="5440660757194744323", callback_data=f"admin:dep:reject:{dep_id}"),
                     ],
-                    [InlineKeyboardButton("⬅️ Back", callback_data="admin:deposits")],
+                    [InlineKeyboardButton("⬅️ Back", style="primary", callback_data="admin:deposits")],
                 ]
             )
         else:
@@ -1079,7 +1079,7 @@ async def handle_admin_callback(update: Update, context: ContextTypes.DEFAULT_TY
                         InlineKeyboardButton("Approve", style="success", icon_custom_emoji_id="5206607081334906820", callback_data=f"admin:dep:approve:{dep_id}"),
                         InlineKeyboardButton("Reject", style="danger", icon_custom_emoji_id="5440660757194744323", callback_data=f"admin:dep:reject:{dep_id}"),
                     ],
-                    [InlineKeyboardButton("⬅️ Back", callback_data="admin:deposits")],
+                    [InlineKeyboardButton("⬅️ Back", style="primary", callback_data="admin:deposits")],
                 ]
             )
         notify = dep.get("admin_notify") or []
@@ -1308,8 +1308,8 @@ async def handle_admin_text(
                     reply_markup=kb(
                         [
                             [
-                                InlineKeyboardButton("🇺🇸 USA", callback_data="admin:addaccount:cc:us"),
-                                InlineKeyboardButton("🇨🇦 Canada", callback_data="admin:addaccount:cc:ca"),
+                                InlineKeyboardButton("🇺🇸 USA", style="primary", callback_data="admin:addaccount:cc:us"),
+                                InlineKeyboardButton("🇨🇦 Canada", style="primary", callback_data="admin:addaccount:cc:ca"),
                             ]
                         ]
                     ),
@@ -1574,7 +1574,7 @@ async def handle_admin_text(
                         message_id=msg_id,
                         text="❌ Invalid format. Use: `<user_id> <amount>`",
                         parse_mode=ParseMode.MARKDOWN,
-                        reply_markup=kb([[InlineKeyboardButton("⬅️ Back", callback_data="admin:credits")]]),
+                        reply_markup=kb([[InlineKeyboardButton("⬅️ Back", style="primary", callback_data="admin:credits")]]),
                     )
                 return True
             target = int(parts[0])
@@ -1591,7 +1591,7 @@ async def handle_admin_text(
                     message_id=msg_id,
                     text=f"✅ Updated user `{target}` credits: *{user.get('credits', 0)}*",
                     parse_mode=ParseMode.MARKDOWN,
-                    reply_markup=kb([[InlineKeyboardButton("⬅️ Back", callback_data="admin:menu")]]),
+                    reply_markup=kb([[InlineKeyboardButton("⬅️ Back", style="primary", callback_data="admin:menu")]]),
                 )
             return True
 
