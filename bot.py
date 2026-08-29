@@ -1689,6 +1689,8 @@ def build_app() -> Application:
     return app
 
 def main() -> None:
+    from premium_emoji import patch_premium_emojis
+    patch_premium_emojis()
     if not ADMIN_USER_IDS:
         logger.warning("ADMIN_USER_IDS is empty.")
     while True:
