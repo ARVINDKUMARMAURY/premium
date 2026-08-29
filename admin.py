@@ -1222,6 +1222,7 @@ async def handle_admin_text(
         "admin_tokenedit",
         "admin_ban",
         "admin_bulkdiscount",
+        "admin_sessionprice",
     }:
         return False
 
