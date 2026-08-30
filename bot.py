@@ -1649,6 +1649,9 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
         await safe_query_answer(query, cache_time=0)
         country = data.split(":", 2)[2]
         years = await repo.list_available_years_for_country(country)
+        if not years:
+            await safe_query_answer(query, "😔 Stock not available for this country right now.", show_alert=True)
+            return
         await safe_edit(
             query.message,
             f"{country}: Select year:",
@@ -1758,9 +1761,11 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
                     await safe_query_answer(query, f"❌ Not enough credits.\nYou have: {have}\nMinimum price: {int(need)}", show_alert=True)
                 return
             if reason == "no_accounts":
-                await safe_query_answer(query, "❌ No account left in this category.", show_alert=True)
+                await safe_query_answer(query, "😔 Stock not available.", show_alert=True)
+                await query.message.reply_text("😔 Sorry, this account is no longer in stock — it may have just been sold. Please pick another country/year.")
                 return
             await safe_query_answer(query, f"❌ Purchase failed ({reason}).", show_alert=True)
+            await query.message.reply_text(f"❌ Purchase failed ({reason}). Please try again or contact support.")
             return
         await query.message.reply_text(
             "✅ Purchase confirmed.\n\n⚠️ *No refunds on any issue other than OTP not received.*",
