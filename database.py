@@ -523,6 +523,24 @@ class Repo:
         )
         return await self.db.users.find_one({"user_id": int(user_id)})
 
+    async def queue_otp_connect(self, account_id: ObjectId, buyer_user_id: int) -> None:
+        """Called by the API server after a purchase — the bot process (which
+        owns the live Telethon AccountManager) polls this queue and starts
+        OTP monitoring for the account, same as a normal in-bot purchase."""
+        await self.db.pending_otp_connect.insert_one({
+            "account_id": account_id,
+            "buyer_user_id": int(buyer_user_id),
+            "created_at": utcnow(),
+            "done": False,
+        })
+
+    async def pop_pending_otp_connects(self, limit: int = 20) -> list[dict[str, Any]]:
+        items = [x async for x in self.db.pending_otp_connect.find({"done": False}).limit(limit)]
+        if items:
+            ids = [x["_id"] for x in items]
+            await self.db.pending_otp_connect.update_many({"_id": {"$in": ids}}, {"$set": {"done": True}})
+        return items
+
     async def get_or_create_api_key(self, user_id: int) -> str:
         import secrets
         user = await self.db.users.find_one({"user_id": int(user_id)})

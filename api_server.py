@@ -96,19 +96,18 @@ async def buy(req: BuyRequest, x_api_key: Optional[str] = Header(None)):
     )
     if not account:
         raise HTTPException(status_code=400, detail=f"Purchase failed: {reason}")
-    # NOTE: OTP auto-forwarding currently only works when the account is
-    # bought from inside the Telegram bot itself (it uses the bot's live
-    # account_manager to watch for the login code and forward it into your
-    # Telegram chat with the bot). Accounts bought via this API will NOT
-    # get that automatic forwarding yet — you'll need to check OTP manually
-    # via the bot's "Manage Devices" / Get OTP feature for now.
+    await repo.queue_otp_connect(account["_id"], user["user_id"])
+    # NOTE: OTP forwarding now starts automatically within a few seconds —
+    # the bot process picks this purchase up and begins watching for the
+    # login code, then sends it to you in your Telegram chat with the bot
+    # (same as buying directly inside the bot).
     return {
         "phone": account.get("phone"),
         "country": account.get("country"),
         "year": account.get("year"),
         "twofa_password": account.get("twofa_password"),
         "price": account.get("price"),
-        "note": "Use the bot's 'Manage Devices > Get OTP' to receive the login code for this account.",
+        "note": "Login with this number in Telegram. The OTP will be forwarded to you in your Telegram chat with the bot within a few seconds.",
     }
 
 

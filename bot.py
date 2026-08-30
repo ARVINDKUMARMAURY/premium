@@ -885,11 +885,45 @@ async def send_purchase_details(update: Update, context: ContextTypes.DEFAULT_TY
     )
     await account_manager.ensure_connected_for_account(account["_id"], account, uid)
 
+async def _api_purchase_poller(app: Application) -> None:
+    """Background loop: picks up accounts bought via api_server.py and starts
+    OTP monitoring for them using the bot's live AccountManager — same as a
+    normal in-bot purchase."""
+    repo: Repo = app.bot_data["repo"]
+    account_manager: AccountManager = app.bot_data["account_manager"]
+    while True:
+        try:
+            items = await repo.pop_pending_otp_connects(limit=20)
+            for item in items:
+                try:
+                    acc = await repo.get_account(item["account_id"])
+                    if not acc:
+                        continue
+                    buyer = int(item["buyer_user_id"])
+                    await account_manager.ensure_connected_for_account(item["account_id"], acc, buyer)
+                    try:
+                        await app.bot.send_message(
+                            chat_id=buyer,
+                            text=(
+                                f"✅ Purchase via API confirmed.\n\n"
+                                f"Phone: +{acc.get('phone','')}\n"
+                                "Login with this number in Telegram now — I will forward the OTP here."
+                            ),
+                        )
+                    except Exception:
+                        pass
+                except Exception:
+                    logger.exception("api_purchase_poller: failed to connect one item")
+        except Exception:
+            logger.exception("api_purchase_poller: poll failed")
+        await asyncio.sleep(3)
+
 async def post_init(app: Application) -> None:
     try:
         await init_indexes()
     except Exception as e:
         logger.error(f"Mongo init_indexes failed: {e}")
+    app.create_task(_api_purchase_poller(app))
 
 async def post_shutdown(app: Application) -> None:
     account_manager: AccountManager = app.bot_data.get("account_manager")
