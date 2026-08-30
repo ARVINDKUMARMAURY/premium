@@ -11,6 +11,7 @@ try:
 except Exception:
     certifi = None
 from pymongo import ReturnDocument
+from pymongo.errors import DuplicateKeyError
 
 from config import DB_NAME, MONGO_URI
 
@@ -654,9 +655,22 @@ class Repo:
             "updated_at": now,
             "added_by": int(added_by),
         }
-        res = await self.db.accounts.insert_one(doc)
+        try:
+            res = await self.db.accounts.insert_one(doc)
+            account_id = res.inserted_id
+        except DuplicateKeyError:
+            # Same phone already exists (e.g. re-adding/refreshing a session).
+            # Update the existing record instead of crashing.
+            existing = await self.db.accounts.find_one({"phone": str(phone)})
+            update_doc = dict(doc)
+            update_doc.pop("created_at", None)  # keep original created_at
+            update_doc["status"] = "available"
+            update_doc["assigned_to"] = None
+            update_doc["assigned_at"] = None
+            await self.db.accounts.update_one({"phone": str(phone)}, {"$set": update_doc})
+            account_id = existing["_id"]
         await self._maybe_queue_restock_notify(country)
-        return res.inserted_id
+        return account_id
 
     async def _maybe_queue_restock_notify(self, country: str | None, cooldown_minutes: int = 10) -> None:
         """Queue a 'new stock' broadcast for this country, but only once per
