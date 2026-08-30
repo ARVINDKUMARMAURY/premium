@@ -663,6 +663,7 @@ class Repo:
             # Update the existing record instead of crashing.
             existing = await self.db.accounts.find_one({"phone": str(phone)})
             update_doc = dict(doc)
+            update_doc.pop("_id", None)  # pymongo injects a new _id into doc before insert; must not carry it into $set
             update_doc.pop("created_at", None)  # keep original created_at
             update_doc["status"] = "available"
             update_doc["assigned_to"] = None
