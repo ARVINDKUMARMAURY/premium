@@ -973,6 +973,14 @@ async def on_error(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
     except Exception:
         pass
     logger.exception("Unhandled exception: %s", err)
+    try:
+        if isinstance(update, Update) and update.effective_chat:
+            await context.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text="⚠️ Something went wrong processing that. Please try again, or press Cancel and restart.",
+            )
+    except Exception:
+        pass
 
 # ---------- Referral Award ----------
 async def _notify_referral_award(

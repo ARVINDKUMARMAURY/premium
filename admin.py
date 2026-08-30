@@ -1464,28 +1464,45 @@ async def handle_admin_text(
 
         if step == "tg_password":
             pwd = text.strip()
-            doc, status = await account_manager.admin_complete_password(uid, pwd)
+            try:
+                doc, status = await account_manager.admin_complete_password(uid, pwd)
+            except Exception as e:
+                logging.exception("tg_password step crashed")
+                await update.message.reply_text(
+                    f"❌ Something went wrong: {e}\n\nSend the 2FA password again (or press Cancel).",
+                    reply_markup=cancel_reply_kb(),
+                )
+                return True
             if status in {"invalid_password"} or status != "ok" or not doc:
                 st["step"] = "tg_password"
                 await update.message.reply_text(
-                    "❌ Wrong 2FA password. Send again (or press Cancel).",
+                    f"❌ Wrong 2FA password (status: {status}). Send again (or press Cancel).",
                     reply_markup=cancel_reply_kb(),
                 )
                 return True
             st["twofa_password"] = pwd
-            await repo.create_account(
-                phone=doc["phone"],
-                api_id=doc["api_id"],
-                api_hash=doc["api_hash"],
-                session_string=doc["session_string"],
-                added_by=uid,
-                year=st.get("year"),
-                premium_months=st.get("premium_months"),
-                country=st.get("country"),
-                country_emoji=st.get("country_emoji"),
-                twofa_password=st.get("twofa_password"),
-                price=st.get("price"),
-            )
+            try:
+                await repo.create_account(
+                    phone=doc["phone"],
+                    api_id=doc["api_id"],
+                    api_hash=doc["api_hash"],
+                    session_string=doc["session_string"],
+                    added_by=uid,
+                    year=st.get("year"),
+                    premium_months=st.get("premium_months"),
+                    country=st.get("country"),
+                    country_emoji=st.get("country_emoji"),
+                    twofa_password=st.get("twofa_password"),
+                    price=st.get("price"),
+                )
+            except Exception as e:
+                logging.exception("create_account after 2FA crashed")
+                await update.message.reply_text(
+                    f"❌ Login succeeded but saving to database failed: {e}\n\nPlease check logs / try again.",
+                    reply_markup=main_reply_menu(True),
+                )
+                state.pop(uid, None)
+                return True
             state.pop(uid, None)
             note = "\n🔒 Other devices logged out." if doc.get("other_sessions_terminated") else "\n⚠️ Other devices could NOT be logged out (session <24h old)."
             await update.message.reply_text("✅ Account saved and added to stock." + note, reply_markup=main_reply_menu(True))
