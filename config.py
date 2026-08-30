@@ -27,6 +27,10 @@ BOT_USERNAME = os.getenv("BOT_USERNAME", "YourBotUsername")
 # Support bot username (without @)
 SUPPORT_USERNAME = os.getenv("SUPPORT_USERNAME", "YourSupportUsername")
 
+# Public URL of the deployed api_server.py (set this once you deploy the API
+# as a second Railway service). Leave the default if not deployed yet.
+API_BASE_URL = os.getenv("API_BASE_URL", "https://your-api-url.up.railway.app")
+
 # Referral program percentage (3% forever)
 REFERRAL_PERCENT = float(os.getenv("REFERRAL_PERCENT", "3.0"))
 

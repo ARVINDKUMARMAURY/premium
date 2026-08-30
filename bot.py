@@ -84,6 +84,7 @@ from config import (
     BHARATPE_UPI_ID,
     BHARATPE_TOKEN,
     BHARATPE_MERCHANT_ID,
+    API_BASE_URL,
 )
 
 try:
@@ -1396,16 +1397,25 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
         await safe_query_answer(query, cache_time=0)
         key = await repo.get_or_create_api_key(uid)
         text = (
-            "🔑 *Your API Key*\n\n"
-            f"`{key}`\n\n"
-            "Use this in the `X-API-Key` header when calling the API.\n"
-            "Keep it private — anyone with this key can spend your credits.\n\n"
-            "Docs: ask the bot owner for the API base URL."
+            "🔑 Your API Key\n\n"
+            f"{key}\n\n"
+            "⚠️ Keep it private — anyone with this key can spend your credits.\n\n"
+            "Base URL:\n"
+            f"{API_BASE_URL}\n\n"
+            "Header (send with every request):\n"
+            f"X-API-Key: {key}\n\n"
+            "Endpoints:\n"
+            "• GET /v1/countries — stock + price (no key needed)\n"
+            "• GET /v1/balance — your credits\n"
+            "• POST /v1/buy — body: {\"country\": \"IN\"}\n"
+            "• GET /v1/history — your past purchases\n\n"
+            "Quick test (curl):\n"
+            f"curl -H \"X-API-Key: {key}\" {API_BASE_URL}/v1/balance"
         )
         await safe_edit(
             query.message,
             text,
-            parse_mode=ParseMode.MARKDOWN,
+            parse_mode=None,
             reply_markup=kb([
                 [InlineKeyboardButton("🔄 Regenerate", style="danger", callback_data="me:apikey:regen")],
                 [InlineKeyboardButton("Back", style="primary", icon_custom_emoji_id="5416113713428057601", callback_data="me:balance")],
@@ -1417,15 +1427,25 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
         await safe_query_answer(query, "🔄 New key generated", show_alert=False)
         key = await repo.regenerate_api_key(uid)
         text = (
-            "🔑 *Your API Key* (regenerated)\n\n"
-            f"`{key}`\n\n"
-            "⚠️ Your old key stopped working.\n"
-            "Use this in the `X-API-Key` header when calling the API."
+            "🔑 Your API Key (regenerated)\n\n"
+            f"{key}\n\n"
+            "⚠️ Your old key stopped working.\n\n"
+            "Base URL:\n"
+            f"{API_BASE_URL}\n\n"
+            "Header (send with every request):\n"
+            f"X-API-Key: {key}\n\n"
+            "Endpoints:\n"
+            "• GET /v1/countries — stock + price (no key needed)\n"
+            "• GET /v1/balance — your credits\n"
+            "• POST /v1/buy — body: {\"country\": \"IN\"}\n"
+            "• GET /v1/history — your past purchases\n\n"
+            "Quick test (curl):\n"
+            f"curl -H \"X-API-Key: {key}\" {API_BASE_URL}/v1/balance"
         )
         await safe_edit(
             query.message,
             text,
-            parse_mode=ParseMode.MARKDOWN,
+            parse_mode=None,
             reply_markup=kb([
                 [InlineKeyboardButton("🔄 Regenerate", style="danger", callback_data="me:apikey:regen")],
                 [InlineKeyboardButton("Back", style="primary", icon_custom_emoji_id="5416113713428057601", callback_data="me:balance")],
