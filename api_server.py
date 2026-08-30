@@ -17,13 +17,35 @@ from __future__ import annotations
 
 from typing import Optional
 
-from fastapi import FastAPI, Header, HTTPException
+from fastapi import FastAPI, Header, HTTPException, Request
 from pydantic import BaseModel
 
 from database import Repo, get_db
 
 app = FastAPI(title="Rudra API", version="1.0")
 repo = Repo(get_db())
+
+
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    response = await call_next(request)
+    try:
+        api_key = request.headers.get("x-api-key") or request.headers.get("X-API-Key")
+        user_id = 0
+        if api_key:
+            u = await repo.get_user_by_api_key(api_key)
+            if u:
+                user_id = int(u["user_id"])
+        client_ip = request.client.host if request.client else None
+        await repo.log_api_call(
+            user_id=user_id,
+            endpoint=f"{request.method} {request.url.path}",
+            ip=client_ip,
+            ok=response.status_code < 400,
+        )
+    except Exception:
+        pass
+    return response
 
 
 # ---------- helpers ----------

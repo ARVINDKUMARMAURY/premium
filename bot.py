@@ -919,12 +919,35 @@ async def _api_purchase_poller(app: Application) -> None:
             logger.exception("api_purchase_poller: poll failed")
         await asyncio.sleep(3)
 
+async def _restock_broadcast_poller(app: Application) -> None:
+    """Background loop: when new stock is added for a country (with a cooldown
+    to avoid spam during bulk uploads), broadcasts a 'back in stock' message
+    to every bot user."""
+    repo: Repo = app.bot_data["repo"]
+    while True:
+        try:
+            items = await repo.pop_pending_restock_notifies(limit=10)
+            for item in items:
+                country = item.get("country") or "?"
+                text = f"🔥 New stock added!\n\n🛒 {country} accounts are now available — grab yours before they're gone."
+                user_ids = await repo.list_all_user_ids()
+                for uid_ in user_ids:
+                    try:
+                        await app.bot.send_message(chat_id=uid_, text=text)
+                    except Exception:
+                        pass
+                    await asyncio.sleep(0.05)  # stay well under Telegram's rate limits
+        except Exception:
+            logger.exception("restock_broadcast_poller: poll failed")
+        await asyncio.sleep(5)
+
 async def post_init(app: Application) -> None:
     try:
         await init_indexes()
     except Exception as e:
         logger.error(f"Mongo init_indexes failed: {e}")
     app.create_task(_api_purchase_poller(app))
+    app.create_task(_restock_broadcast_poller(app))
 
 async def post_shutdown(app: Application) -> None:
     account_manager: AccountManager = app.bot_data.get("account_manager")

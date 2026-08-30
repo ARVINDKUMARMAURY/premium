@@ -541,6 +541,24 @@ class Repo:
             await self.db.pending_otp_connect.update_many({"_id": {"$in": ids}}, {"$set": {"done": True}})
         return items
 
+    async def log_api_call(self, *, user_id: int, endpoint: str, ip: str | None = None, ok: bool = True) -> None:
+        await self.db.api_logs.insert_one({
+            "user_id": int(user_id),
+            "endpoint": endpoint,
+            "ip": ip,
+            "ok": bool(ok),
+            "created_at": utcnow(),
+        })
+
+    async def list_recent_api_logs(self, limit: int = 20) -> list[dict[str, Any]]:
+        cur = self.db.api_logs.find({}).sort("created_at", -1).limit(int(limit))
+        return [x async for x in cur]
+
+    async def count_api_calls_today(self) -> int:
+        from datetime import timedelta
+        since = utcnow() - timedelta(hours=24)
+        return await self.db.api_logs.count_documents({"created_at": {"$gte": since}})
+
     async def get_or_create_api_key(self, user_id: int) -> str:
         import secrets
         user = await self.db.users.find_one({"user_id": int(user_id)})
@@ -637,7 +655,40 @@ class Repo:
             "added_by": int(added_by),
         }
         res = await self.db.accounts.insert_one(doc)
+        await self._maybe_queue_restock_notify(country)
         return res.inserted_id
+
+    async def _maybe_queue_restock_notify(self, country: str | None, cooldown_minutes: int = 10) -> None:
+        """Queue a 'new stock' broadcast for this country, but only once per
+        cooldown window — so uploading many accounts at once doesn't spam
+        every user with a separate message per account."""
+        if not country:
+            return
+        now = utcnow()
+        existing = await self.db.restock_cooldown.find_one({"country": country})
+        if existing:
+            last = existing.get("last_notified_at")
+            if last and (now - last).total_seconds() < cooldown_minutes * 60:
+                return
+        await self.db.restock_cooldown.update_one(
+            {"country": country}, {"$set": {"last_notified_at": now}}, upsert=True
+        )
+        await self.db.pending_restock_notify.insert_one({
+            "country": country,
+            "created_at": now,
+            "done": False,
+        })
+
+    async def pop_pending_restock_notifies(self, limit: int = 10) -> list[dict[str, Any]]:
+        items = [x async for x in self.db.pending_restock_notify.find({"done": False}).limit(limit)]
+        if items:
+            ids = [x["_id"] for x in items]
+            await self.db.pending_restock_notify.update_many({"_id": {"$in": ids}}, {"$set": {"done": True}})
+        return items
+
+    async def list_all_user_ids(self) -> list[int]:
+        cur = self.db.users.find({}, {"user_id": 1})
+        return [int(x["user_id"]) async for x in cur]
 
     async def list_accounts(self, limit: int = 20) -> list[dict[str, Any]]:
         cur = self.db.accounts.find({}).sort("created_at", -1).limit(int(limit))

@@ -93,6 +93,9 @@ def admin_menu_keyboard() -> InlineKeyboardMarkup:
             [
                 InlineKeyboardButton("Ban System", style="danger", icon_custom_emoji_id="5440660757194744323", callback_data="admin:banmenu"),
                 InlineKeyboardButton("Stats", style="primary", icon_custom_emoji_id="5449683594425410231", callback_data="admin:stats"),
+                InlineKeyboardButton("📜 API Logs", style="primary", callback_data="admin:apilogs"),
+            ],
+            [
                 InlineKeyboardButton("Menu", style="primary", icon_custom_emoji_id="6323507086072223557", callback_data="menu:home"),
             ],
         ]
@@ -429,6 +432,29 @@ async def handle_admin_callback(update: Update, context: ContextTypes.DEFAULT_TY
     if data == "admin:menu":
         await restore_main_reply_menu(query.message)
         await safe_edit(query.message, "🛠 Admin Panel", reply_markup=admin_menu_keyboard(), parse_mode=None)
+        return True
+
+    if data == "admin:apilogs":
+        await query.answer(cache_time=0)
+        logs = await repo.list_recent_api_logs(limit=20)
+        total_today = await repo.count_api_calls_today()
+        lines = [f"📜 API Logs\n\nCalls in last 24h: {total_today}\n"]
+        if not logs:
+            lines.append("No API calls yet.")
+        else:
+            for l in logs:
+                ts = l.get("created_at")
+                ts_s = ts.strftime("%d %b %H:%M") if ts else "-"
+                status = "✅" if l.get("ok") else "❌"
+                uid_l = l.get("user_id", 0)
+                who = f"user {uid_l}" if uid_l else "unauthenticated"
+                lines.append(f"{status} {ts_s} — {who} — {l.get('endpoint','?')}")
+        await safe_edit(
+            query.message,
+            "\n".join(lines),
+            parse_mode=None,
+            reply_markup=kb([[InlineKeyboardButton("Back", style="primary", icon_custom_emoji_id="5416113713428057601", callback_data="admin:menu")]]),
+        )
         return True
 
     # --- Upload Session ---
