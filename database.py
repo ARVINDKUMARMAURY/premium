@@ -523,6 +523,34 @@ class Repo:
         )
         return await self.db.users.find_one({"user_id": int(user_id)})
 
+    async def get_or_create_api_key(self, user_id: int) -> str:
+        import secrets
+        user = await self.db.users.find_one({"user_id": int(user_id)})
+        if user and user.get("api_key"):
+            return user["api_key"]
+        key = secrets.token_hex(20)
+        await self.ensure_user(user_id)
+        await self.db.users.update_one(
+            {"user_id": int(user_id)},
+            {"$set": {"api_key": key, "updated_at": utcnow()}},
+        )
+        return key
+
+    async def get_user_by_api_key(self, api_key: str) -> dict[str, Any] | None:
+        if not api_key:
+            return None
+        return await self.db.users.find_one({"api_key": api_key})
+
+    async def regenerate_api_key(self, user_id: int) -> str:
+        import secrets
+        key = secrets.token_hex(20)
+        await self.ensure_user(user_id)
+        await self.db.users.update_one(
+            {"user_id": int(user_id)},
+            {"$set": {"api_key": key, "updated_at": utcnow()}},
+        )
+        return key
+
     async def add_credits(self, user_id: int, amount: int, *, by_admin: int) -> dict[str, Any]:
         now = utcnow()
         await self.ensure_user(user_id)

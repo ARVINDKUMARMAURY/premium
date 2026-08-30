@@ -838,10 +838,14 @@ async def show_balance(update: Update, context: ContextTypes.DEFAULT_TYPE, *, ed
     repo: Repo = context.application.bot_data["repo"]
     user = await repo.ensure_user(uid, username=update.effective_user.username)
     text = f"💰 *Your Balance*\n\nCredits: *{user.get('credits', 0)}*"
+    markup = kb([
+        [InlineKeyboardButton("🔑 API Key", style="primary", callback_data="me:apikey")],
+        [InlineKeyboardButton("Back", style="primary", icon_custom_emoji_id="5416113713428057601", callback_data="menu:home")],
+    ])
     if edit:
-        await safe_edit(update.effective_message, text, reply_markup=back_to_menu(), parse_mode=ParseMode.MARKDOWN)
+        await safe_edit(update.effective_message, text, reply_markup=markup, parse_mode=ParseMode.MARKDOWN)
     else:
-        await update.effective_message.reply_text(text, parse_mode=ParseMode.MARKDOWN, reply_markup=back_to_menu())
+        await update.effective_message.reply_text(text, parse_mode=ParseMode.MARKDOWN, reply_markup=markup)
 
 async def send_purchase_details(update: Update, context: ContextTypes.DEFAULT_TYPE, account: dict[str, Any]) -> None:
     uid = update.effective_user.id
@@ -1352,6 +1356,47 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     if data == "me:balance":
         await safe_query_answer(query, cache_time=0)
         await show_balance(update, context, edit=True)
+        return
+
+    if data == "me:apikey":
+        await safe_query_answer(query, cache_time=0)
+        key = await repo.get_or_create_api_key(uid)
+        text = (
+            "🔑 *Your API Key*\n\n"
+            f"`{key}`\n\n"
+            "Use this in the `X-API-Key` header when calling the API.\n"
+            "Keep it private — anyone with this key can spend your credits.\n\n"
+            "Docs: ask the bot owner for the API base URL."
+        )
+        await safe_edit(
+            query.message,
+            text,
+            parse_mode=ParseMode.MARKDOWN,
+            reply_markup=kb([
+                [InlineKeyboardButton("🔄 Regenerate", style="danger", callback_data="me:apikey:regen")],
+                [InlineKeyboardButton("Back", style="primary", icon_custom_emoji_id="5416113713428057601", callback_data="me:balance")],
+            ]),
+        )
+        return
+
+    if data == "me:apikey:regen":
+        await safe_query_answer(query, "🔄 New key generated", show_alert=False)
+        key = await repo.regenerate_api_key(uid)
+        text = (
+            "🔑 *Your API Key* (regenerated)\n\n"
+            f"`{key}`\n\n"
+            "⚠️ Your old key stopped working.\n"
+            "Use this in the `X-API-Key` header when calling the API."
+        )
+        await safe_edit(
+            query.message,
+            text,
+            parse_mode=ParseMode.MARKDOWN,
+            reply_markup=kb([
+                [InlineKeyboardButton("🔄 Regenerate", style="danger", callback_data="me:apikey:regen")],
+                [InlineKeyboardButton("Back", style="primary", icon_custom_emoji_id="5416113713428057601", callback_data="me:balance")],
+            ]),
+        )
         return
 
     if data.startswith("me:history:"):
