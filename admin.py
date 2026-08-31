@@ -306,7 +306,7 @@ async def process_uploaded_session(
         except Exception:
             terminated_others = False
             logging.exception("ResetAuthorizationsRequest failed")
-        session_string = client.session.save()
+        session_string = StringSession.save(client.session)
         await client.disconnect()
     except Exception as e:
         await update.message.reply_text(f"❌ Failed to connect: {e}")
@@ -340,7 +340,6 @@ async def process_uploaded_session(
         "other_sessions_terminated": terminated_others,
     }
     state[uid] = st
-    logging.warning(f"DEBUG zip-upload: uid={uid} session_string_len={len(session_string or '')} state_id={id(state)}")
     sessions_note = (
         "🔒 Other devices logged out automatically."
         if terminated_others
@@ -1239,7 +1238,6 @@ async def handle_admin_text(
     st = state[uid]
     flow = st.get("flow")
     step = st.get("step")
-    logging.warning(f"DEBUG handle_admin_text: uid={uid} flow={flow} step={step} state_id={id(state)} st_keys={list(st.keys())}")
 
     if flow not in {
         "admin_add_account",
@@ -1394,10 +1392,6 @@ async def handle_admin_text(
                 await update.message.reply_text("Price must be numeric. Send again:")
                 return True
             st["price"] = int(text)
-            logging.warning(
-                f"DEBUG price-step: uid={uid} has_session_string={bool(st.get('session_string'))} "
-                f"session_string_len={len(st.get('session_string') or '')} keys={list(st.keys())}"
-            )
 
             if st.get("session_string"):
                 await repo.create_account(
