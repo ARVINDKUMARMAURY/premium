@@ -244,13 +244,15 @@ async def process_uploaded_session(
     uid: int,
     state: Dict[int, Dict[str, Any]],
 ) -> bool:
-    """Process uploaded zip, extract session, connect, and set state for year/price."""
+    """Process uploaded zip — supports ONE OR MANY .session files inside it.
+    Connects to each, then asks for a single year/price to apply to the
+    whole batch (bulk upload)."""
     if not update.message or not update.message.document:
         return False
-    
+
     doc = update.message.document
     if not doc.file_name or not doc.file_name.lower().endswith('.zip'):
-        await update.message.reply_text("❌ Please send a **ZIP** file containing a `.session` file.")
+        await update.message.reply_text("❌ Please send a **ZIP** file containing `.session` file(s).")
         return True
 
     # Download zip
@@ -263,96 +265,107 @@ async def process_uploaded_session(
         await update.message.reply_text(f"❌ Failed to download zip: {e}")
         return True
 
-    # Extract .session file
-    session_bytes = None
-    session_filename = None
+    # Extract ALL .session files
+    session_entries = []  # list of (filename, bytes)
     try:
         with zipfile.ZipFile(zip_bytes) as zf:
             for name in zf.namelist():
                 if name.endswith('.session'):
-                    session_filename = name
                     with zf.open(name) as f:
-                        session_bytes = f.read()
-                    break
-        if session_bytes is None:
+                        session_entries.append((name, f.read()))
+        if not session_entries:
             await update.message.reply_text("❌ No `.session` file found in the zip.")
             return True
     except Exception as e:
         await update.message.reply_text(f"❌ Failed to extract zip: {e}")
         return True
 
-    # Write session to temporary file
-    temp_dir = tempfile.mkdtemp()
-    temp_session_path = os.path.join(temp_dir, session_filename or "temp.session")
-    with open(temp_session_path, 'wb') as f:
-        f.write(session_bytes)
+    if len(session_entries) > 1:
+        await update.message.reply_text(f"📦 Found {len(session_entries)} sessions in this zip. Connecting to all of them, please wait...")
 
-    # Connect using Telethon
-    client = TelegramClient(temp_session_path, int(TELEGRAM_API_ID), TELEGRAM_API_HASH)
-    try:
-        await client.connect()
-        if not await client.is_user_authorized():
-            await update.message.reply_text("❌ Session is not logged in. Please use a valid session file.")
-            await client.disconnect()
-            return True
-        me = await client.get_me()
-        phone = me.phone  # e.g., "1234567890"
-        terminated_others = True
+    connected = []  # successfully connected accounts, ready to save
+    failed = []  # (filename, reason)
+
+    for session_filename, session_bytes in session_entries:
+        temp_dir = tempfile.mkdtemp()
+        temp_session_path = os.path.join(temp_dir, os.path.basename(session_filename) or "temp.session")
         try:
-            await client(ResetAuthorizationsRequest())
-        except FreshResetAuthorisationForbiddenError:
-            terminated_others = False
-            logging.warning("ResetAuthorizationsRequest: session too new (<24h), skipped")
-        except Exception:
-            terminated_others = False
-            logging.exception("ResetAuthorizationsRequest failed")
-        session_string = StringSession.save(client.session)
-        await client.disconnect()
-    except Exception as e:
-        await update.message.reply_text(f"❌ Failed to connect: {e}")
+            with open(temp_session_path, 'wb') as f:
+                f.write(session_bytes)
+
+            client = TelegramClient(temp_session_path, int(TELEGRAM_API_ID), TELEGRAM_API_HASH)
+            try:
+                await client.connect()
+                if not await client.is_user_authorized():
+                    failed.append((session_filename, "not logged in"))
+                    await client.disconnect()
+                    continue
+                me = await client.get_me()
+                phone = me.phone
+                terminated_others = True
+                try:
+                    await client(ResetAuthorizationsRequest())
+                except FreshResetAuthorisationForbiddenError:
+                    terminated_others = False
+                    logging.warning("ResetAuthorizationsRequest: session too new (<24h), skipped")
+                except Exception:
+                    terminated_others = False
+                    logging.exception("ResetAuthorizationsRequest failed")
+                session_string = StringSession.save(client.session)
+                await client.disconnect()
+            except Exception as e:
+                failed.append((session_filename, str(e)))
+                continue
+
+            cc, em, _ = detect_country_from_phone("+" + phone)
+            if not cc:
+                cc = "??"
+                em = ""
+
+            connected.append({
+                "phone": phone,
+                "phone_e164": "+" + phone,
+                "country": cc,
+                "country_emoji": em,
+                "session_string": session_string,
+                "other_sessions_terminated": terminated_others,
+            })
+        except Exception as e:
+            failed.append((session_filename, str(e)))
+        finally:
+            try:
+                os.remove(temp_session_path)
+                os.rmdir(temp_dir)
+            except Exception:
+                pass
+
+    if not connected:
+        fail_lines = "\n".join(f"• {n}: {r}" for n, r in failed) or "unknown error"
+        await update.message.reply_text(f"❌ None of the sessions could be connected:\n{fail_lines}")
         return True
-    finally:
-        try:
-            os.remove(temp_session_path)
-            os.rmdir(temp_dir)
-        except:
-            pass
 
-    # Detect country
-    cc, em, _ = detect_country_from_phone("+" + phone)
-    if not cc:
-        cc = "??"
-        em = ""
-
-    # Prepare state for existing admin_add_account flow (step: year)
     st = {
         "flow": "admin_add_account",
         "step": "year",
-        "phone": phone,
-        "phone_e164": "+" + phone,
-        "country": cc,
-        "country_emoji": em,
-        "session_string": session_string,
+        "batch": connected,  # list of ready-to-save accounts
         "api_id": TELEGRAM_API_ID,
         "api_hash": TELEGRAM_API_HASH,
-        "twofa_password": None,
         "source": "upload",
-        "other_sessions_terminated": terminated_others,
     }
     state[uid] = st
-    sessions_note = (
-        "🔒 Other devices logged out automatically."
-        if terminated_others
-        else "⚠️ Could not log out other devices (session is <24h old, Telegram blocks reset). Will still work, just retry later if needed."
-    )
-    await update.message.reply_text(
-        f"✅ Session loaded successfully!\n\n"
-        f"📱 Phone: +{phone}\n"
-        f"🌍 Country: {em} {cc}\n"
-        f"{sessions_note}\n\n"
-        "Now send the account **year** (e.g., 2023) or type `premium` (then months), or `skip`.",
-        parse_mode=ParseMode.MARKDOWN,
-    )
+
+    summary_lines = [f"✅ {len(connected)} session(s) loaded successfully!\n"]
+    for acc in connected:
+        note = "🔒" if acc["other_sessions_terminated"] else "⚠️<24h"
+        summary_lines.append(f"{note} {acc['country_emoji']} +{acc['phone']}")
+    if failed:
+        summary_lines.append(f"\n❌ {len(failed)} failed:")
+        for n, r in failed:
+            summary_lines.append(f"• {n}: {r}")
+    summary_lines.append("\nNow send the account **year** (e.g., 2023) or type `premium` (then months), or `skip`.")
+    summary_lines.append("(This will apply to all accounts in this batch.)")
+
+    await update.message.reply_text("\n".join(summary_lines), parse_mode=ParseMode.MARKDOWN)
     return True
 
 # ---------- safe_edit ----------
@@ -1392,6 +1405,34 @@ async def handle_admin_text(
                 await update.message.reply_text("Price must be numeric. Send again:")
                 return True
             st["price"] = int(text)
+
+            if st.get("batch"):
+                saved = 0
+                errors = []
+                for acc in st["batch"]:
+                    try:
+                        await repo.create_account(
+                            phone=acc["phone"],
+                            api_id=st["api_id"],
+                            api_hash=st["api_hash"],
+                            session_string=acc["session_string"],
+                            added_by=uid,
+                            year=st.get("year"),
+                            premium_months=st.get("premium_months"),
+                            country=acc.get("country"),
+                            country_emoji=acc.get("country_emoji"),
+                            twofa_password=None,
+                            price=st.get("price"),
+                        )
+                        saved += 1
+                    except Exception as e:
+                        errors.append(f"+{acc.get('phone','?')}: {e}")
+                state.pop(uid, None)
+                msg = f"✅ {saved} account(s) saved and added to stock."
+                if errors:
+                    msg += f"\n\n❌ {len(errors)} failed:\n" + "\n".join(errors)
+                await update.message.reply_text(msg, reply_markup=main_reply_menu(True))
+                return True
 
             if st.get("session_string"):
                 await repo.create_account(
