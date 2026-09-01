@@ -1252,6 +1252,15 @@ async def handle_admin_text(
     flow = st.get("flow")
     step = st.get("step")
 
+    if update.message.text and update.message.text.strip().lower() == "cancel" and str(flow or "").startswith("admin_"):
+        state.pop(uid, None)
+        try:
+            await account_manager.admin_cancel_login(uid)
+        except Exception:
+            pass
+        await update.message.reply_text("❌ Cancelled.", reply_markup=main_reply_menu(True))
+        return True
+
     if flow not in {
         "admin_add_account",
         "admin_credits",
