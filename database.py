@@ -524,6 +524,31 @@ class Repo:
         )
         return await self.db.users.find_one({"user_id": int(user_id)})
 
+    async def queue_reset_retry(self, account_id: ObjectId, session_string: str, api_id: int, api_hash: str) -> None:
+        """When ResetAuthorizationsRequest fails because the session is <24h
+        old, queue a retry for after the 24h window passes."""
+        from datetime import timedelta
+        await self.db.pending_reset_retry.insert_one({
+            "account_id": account_id,
+            "session_string": session_string,
+            "api_id": int(api_id),
+            "api_hash": api_hash,
+            "retry_after": utcnow() + timedelta(hours=24, minutes=5),
+            "done": False,
+            "created_at": utcnow(),
+        })
+
+    async def pop_due_reset_retries(self, limit: int = 10) -> list[dict[str, Any]]:
+        now = utcnow()
+        items = [x async for x in self.db.pending_reset_retry.find({"done": False, "retry_after": {"$lte": now}}).limit(limit)]
+        if items:
+            ids = [x["_id"] for x in items]
+            await self.db.pending_reset_retry.update_many({"_id": {"$in": ids}}, {"$set": {"done": True}})
+        return items
+
+    async def mark_account_sessions_terminated(self, account_id: ObjectId) -> None:
+        await self.db.accounts.update_one({"_id": account_id}, {"$set": {"other_sessions_terminated": True}})
+
     async def queue_otp_connect(self, account_id: ObjectId, buyer_user_id: int) -> None:
         """Called by the API server after a purchase — the bot process (which
         owns the live Telethon AccountManager) polls this queue and starts
@@ -683,6 +708,8 @@ class Repo:
         existing = await self.db.restock_cooldown.find_one({"country": country})
         if existing:
             last = existing.get("last_notified_at")
+            if last and last.tzinfo is None:
+                last = last.replace(tzinfo=timezone.utc)
             if last and (now - last).total_seconds() < cooldown_minutes * 60:
                 return
         await self.db.restock_cooldown.update_one(
